@@ -1,0 +1,343 @@
+{
+    "AppArmorProfile": "",
+    "Args": [
+        "/app/packages/server/dist/server.js"
+    ],
+    "Config": {
+        "AttachStderr": false,
+        "AttachStdin": false,
+        "AttachStdout": false,
+        "Cmd": [
+            "/app/packages/server/dist/server.js"
+        ],
+        "Domainname": "",
+        "Entrypoint": [
+            "/nodejs/bin/node"
+        ],
+        "Env": [
+            "BASE_URL=https://aiostreams.duckq1linux.id.vn",
+            "SECRET_KEY=30776ca0ebbf479269aecc66c3980d2f45024b747647f925cc61236e52c37410",
+            "DATABASE_URI=postgres://postgres:huyhuyhuy12@192.168.31.98:8528/aiostreams",
+            "AIOSTREAMS_AUTH=duckq1u:huyhuyhuy12",
+            "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+            "SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt",
+            "LD_PRELOAD=/usr/local/lib/libmimalloc.so.2",
+            "MAX_ADDONS=100",
+            "DISABLE_RATE_LIMITS=true",
+            "ANALYTICS_ENABLED=false",
+            "USER_ANALYTICS_ENABLED=false"
+        ],
+        "ExposedPorts": {
+            "3000/tcp": {}
+        },
+        "Healthcheck": {
+            "Interval": 30000000000,
+            "Retries": 3,
+            "StartPeriod": 5000000000,
+            "Test": [
+                "CMD",
+                "/nodejs/bin/node",
+                "/app/scripts/healthcheck.js"
+            ],
+            "Timeout": 5000000000
+        },
+        "Hostname": "fbc8442beeca",
+        "Image": "viren070/aiostreams:nightly",
+        "Labels": {
+            "org.opencontainers.image.description": "AIOStreams consolidates multiple Stremio addons and debrid services - including its own suite of built-in addons - into a single, highly customisable super-addon.",
+            "org.opencontainers.image.licenses": "GPL-3.0",
+            "org.opencontainers.image.source": "https://github.com/Viren070/AIOStreams",
+            "org.opencontainers.image.title": "AIOStreams"
+        },
+        "OpenStdin": false,
+        "StdinOnce": false,
+        "Tty": false,
+        "User": "0",
+        "Volumes": {
+            "/app/data": {}
+        },
+        "WorkingDir": "/app"
+    },
+    "Created": "2026-08-03T05:51:31.825639227Z",
+    "Driver": "overlay2",
+    "ExecIDs": null,
+    "GraphDriver": {
+        "Data": {
+            "ID": "24b55bb2f410b20c53ab863c219b4ca16a3268fa62839e49b47dad37990daba7",
+            "LowerDir": "/var/lib/docker/overlay2/9ce0dc7abf61bc632724f62f3e4058a74a5a72b03362d5ba41cda91c3f236656-init/diff:/var/lib/docker/overlay2/82a0da20e3efd9feb73a38e700ec32780e2cccaf50e796b1a9ef40bbc563caec/diff:/var/lib/docker/overlay2/9e0eb35a157830100bd5ebdb6361ed42b0b65b87eab61d6152363d1be8baa935/diff:/var/lib/docker/overlay2/d392782baed7889b73de83ddf1f530482f3c1a7daa12551613ddcf89ae327872/diff:/var/lib/docker/overlay2/b89dbdbb22df71f73d5980a216beb29d6768b9c09ad683b1644bfe98451cf472/diff:/var/lib/docker/overlay2/612842569cd7b681dba3881e2a32748fa4ca8755fcc91d99be5bdf6acd9fb3d1/diff:/var/lib/docker/overlay2/f351c66c47299746191315d95aad630701c8fa974042d895da11ec7cd3e97ca3/diff:/var/lib/docker/overlay2/d069b6ce7b3271545015cd53a08075c1a00941caf7833a2cf5b299be053b7ce4/diff:/var/lib/docker/overlay2/313e99679bedd78ca8af8efb98034ef746f49827a9a84541710ebb43687cbab2/diff:/var/lib/docker/overlay2/014fb0cf7b0adfd67358645fff488369c74c67bb8aa3b84f61c3b9ca25e22155/diff:/var/lib/docker/overlay2/d2a734f9387fee4706c138579ea3d397e1397bd3e43be890ddceae1defb13c02/diff:/var/lib/docker/overlay2/769ec8e85e73be788f1091f3d94c069e75e680016c48d79a499af66bf6e4a129/diff:/var/lib/docker/overlay2/a3c499faaa7b71c4b6ae6b464ee4c59b11e54276f50f47298ec46dc18a12a552/diff:/var/lib/docker/overlay2/43d91476c520355d5e5c441e1ea6ed0f83c882e621aee9ba3d0e1ef06944d232/diff:/var/lib/docker/overlay2/5dacb85adb75631e945eaa019ba0bd2baae7358f7dd0b29da942845e9fb52ca4/diff:/var/lib/docker/overlay2/1edd26b13edfc3cd41e8994cfac5d57caddb7132a3dfeecd64de73effd487760/diff:/var/lib/docker/overlay2/d0da8097da74e00aad0b15d108ead112c1b75c0823a9590b57816c37bb63fc0b/diff:/var/lib/docker/overlay2/2c3047def9dbbac7076a293fc58513a32ddd7cb8639324d83aa503a0556103c1/diff:/var/lib/docker/overlay2/4aee642b0bc1410cc6a2305a9b4e905552f82131d5fee266df99a49f33d40093/diff:/var/lib/docker/overlay2/c790f11ed1db678fcda135d01124d47b94727920dd1e8b07be2bbe4f790537d0/diff:/var/lib/docker/overlay2/e2ec90962d31c01d5de6e38ef700e4c0bf3990e8c807639b6ee29b2c08f4eb29/diff:/var/lib/docker/overlay2/660a3de6571429d309137dacee7c2b4b5c42fd2787fb962433f01736fb77986d/diff:/var/lib/docker/overlay2/f85510c8f3159f447ea0e76ce4c7e446134a3cda5c6e5102dc154b17ec8b1a02/diff:/var/lib/docker/overlay2/ced52731e614cbe1d6e045643579ef27638536d8651df1921b5a3e631db9626a/diff:/var/lib/docker/overlay2/0d9b285749a9108f9ffd5c1140e6eb4ed5288e5459d6568690aec293af28e7df/diff",
+            "MergedDir": "/var/lib/docker/overlay2/9ce0dc7abf61bc632724f62f3e4058a74a5a72b03362d5ba41cda91c3f236656/merged",
+            "UpperDir": "/var/lib/docker/overlay2/9ce0dc7abf61bc632724f62f3e4058a74a5a72b03362d5ba41cda91c3f236656/diff",
+            "WorkDir": "/var/lib/docker/overlay2/9ce0dc7abf61bc632724f62f3e4058a74a5a72b03362d5ba41cda91c3f236656/work"
+        },
+        "Name": "overlay2"
+    },
+    "HostConfig": {
+        "AutoRemove": false,
+        "Binds": [
+            "/home/duckq1u/Documents/docker-volumes/aiostreams:/app/data"
+        ],
+        "BlkioDeviceReadBps": null,
+        "BlkioDeviceReadIOps": null,
+        "BlkioDeviceWriteBps": null,
+        "BlkioDeviceWriteIOps": null,
+        "BlkioWeight": 0,
+        "BlkioWeightDevice": null,
+        "CapAdd": [
+            "AUDIT_WRITE",
+            "CHOWN",
+            "DAC_OVERRIDE",
+            "FOWNER",
+            "FSETID",
+            "KILL",
+            "MKNOD",
+            "NET_BIND_SERVICE",
+            "NET_RAW",
+            "SETFCAP",
+            "SETGID",
+            "SETPCAP",
+            "SETUID",
+            "SYS_CHROOT"
+        ],
+        "CapDrop": [
+            "AUDIT_CONTROL",
+            "BLOCK_SUSPEND",
+            "DAC_READ_SEARCH",
+            "IPC_LOCK",
+            "IPC_OWNER",
+            "LEASE",
+            "LINUX_IMMUTABLE",
+            "MAC_ADMIN",
+            "MAC_OVERRIDE",
+            "NET_ADMIN",
+            "NET_BROADCAST",
+            "SYSLOG",
+            "SYS_ADMIN",
+            "SYS_BOOT",
+            "SYS_MODULE",
+            "SYS_NICE",
+            "SYS_PACCT",
+            "SYS_PTRACE",
+            "SYS_RAWIO",
+            "SYS_RESOURCE",
+            "SYS_TIME",
+            "SYS_TTY_CONFIG",
+            "WAKE_ALARM"
+        ],
+        "Cgroup": "",
+        "CgroupParent": "",
+        "CgroupnsMode": "private",
+        "ConsoleSize": [
+            0,
+            0
+        ],
+        "ContainerIDFile": "",
+        "CpuCount": 0,
+        "CpuPercent": 0,
+        "CpuPeriod": 0,
+        "CpuQuota": 0,
+        "CpuRealtimePeriod": 0,
+        "CpuRealtimeRuntime": 0,
+        "CpuShares": 0,
+        "CpusetCpus": "",
+        "CpusetMems": "",
+        "DeviceCgroupRules": null,
+        "DeviceRequests": [],
+        "Devices": [],
+        "Dns": [],
+        "DnsOptions": null,
+        "DnsSearch": null,
+        "ExtraHosts": [],
+        "GroupAdd": null,
+        "IOMaximumBandwidth": 0,
+        "IOMaximumIOps": 0,
+        "Init": false,
+        "IpcMode": "private",
+        "Isolation": "",
+        "Links": null,
+        "LogConfig": {
+            "Config": {},
+            "Type": "json-file"
+        },
+        "MaskedPaths": [
+            "/proc/acpi",
+            "/proc/asound",
+            "/proc/interrupts",
+            "/proc/kcore",
+            "/proc/keys",
+            "/proc/latency_stats",
+            "/proc/sched_debug",
+            "/proc/scsi",
+            "/proc/timer_list",
+            "/proc/timer_stats",
+            "/sys/devices/virtual/powercap",
+            "/sys/firmware"
+        ],
+        "Memory": 0,
+        "MemoryReservation": 0,
+        "MemorySwap": 0,
+        "MemorySwappiness": null,
+        "NanoCpus": 0,
+        "NetworkMode": "bridge",
+        "OomKillDisable": null,
+        "OomScoreAdj": 0,
+        "PidMode": "",
+        "PidsLimit": null,
+        "PortBindings": {
+            "3000/tcp": [
+                {
+                    "HostIp": "",
+                    "HostPort": "8570"
+                }
+            ]
+        },
+        "Privileged": false,
+        "PublishAllPorts": false,
+        "ReadonlyPaths": [
+            "/proc/bus",
+            "/proc/fs",
+            "/proc/irq",
+            "/proc/sys",
+            "/proc/sysrq-trigger"
+        ],
+        "ReadonlyRootfs": false,
+        "RestartPolicy": {
+            "MaximumRetryCount": 0,
+            "Name": "unless-stopped"
+        },
+        "Runtime": "runc",
+        "SecurityOpt": null,
+        "ShmSize": 67108864,
+        "UTSMode": "",
+        "Ulimits": null,
+        "UsernsMode": "",
+        "VolumeDriver": "",
+        "VolumesFrom": null
+    },
+    "HostnamePath": "/var/lib/docker/containers/24b55bb2f410b20c53ab863c219b4ca16a3268fa62839e49b47dad37990daba7/hostname",
+    "HostsPath": "/var/lib/docker/containers/24b55bb2f410b20c53ab863c219b4ca16a3268fa62839e49b47dad37990daba7/hosts",
+    "Id": "24b55bb2f410b20c53ab863c219b4ca16a3268fa62839e49b47dad37990daba7",
+    "Image": "sha256:e0c344105e9f17f431a3e1f580757072d2c634478ef619641383abc8dd854871",
+    "LogPath": "/var/lib/docker/containers/24b55bb2f410b20c53ab863c219b4ca16a3268fa62839e49b47dad37990daba7/24b55bb2f410b20c53ab863c219b4ca16a3268fa62839e49b47dad37990daba7-json.log",
+    "MountLabel": "",
+    "Mounts": [
+        {
+            "Destination": "/app/data",
+            "Mode": "",
+            "Propagation": "rprivate",
+            "RW": true,
+            "Source": "/home/duckq1u/Documents/docker-volumes/aiostreams",
+            "Type": "bind"
+        }
+    ],
+    "Name": "/AIOstreams",
+    "NetworkSettings": {
+        "EndpointID": "8f5a33cfe2635fbae70fa792f36a39fc493a51dd3ff968cca19c0f249456473b",
+        "Gateway": "172.17.0.1",
+        "GlobalIPv6Address": "",
+        "GlobalIPv6PrefixLen": 0,
+        "IPAddress": "172.17.0.10",
+        "IPPrefixLen": 16,
+        "IPv6Gateway": "",
+        "MacAddress": "aa:ef:69:39:7f:9b",
+        "Networks": {
+            "bridge": {
+                "Aliases": null,
+                "DNSNames": null,
+                "DriverOpts": null,
+                "EndpointID": "8f5a33cfe2635fbae70fa792f36a39fc493a51dd3ff968cca19c0f249456473b",
+                "Gateway": "172.17.0.1",
+                "GlobalIPv6Address": "",
+                "GlobalIPv6PrefixLen": 0,
+                "GwPriority": 0,
+                "IPAMConfig": {},
+                "IPAddress": "172.17.0.10",
+                "IPPrefixLen": 16,
+                "IPv6Gateway": "",
+                "Links": null,
+                "MacAddress": "aa:ef:69:39:7f:9b",
+                "NetworkID": "9bca76a0ecc6de0c44d7595679cff0a485bc579cd35467bc1d06ce7be9e57048"
+            }
+        },
+        "Ports": {
+            "3000/tcp": [
+                {
+                    "HostIp": "0.0.0.0",
+                    "HostPort": "8570"
+                },
+                {
+                    "HostIp": "::",
+                    "HostPort": "8570"
+                }
+            ]
+        },
+        "SandboxID": "966f2a788d290f4e587b52bd82d5190b5ee60988f48cfbcf3f743b9b9a7dbc65",
+        "SandboxKey": "/var/run/docker/netns/966f2a788d29"
+    },
+    "Path": "/nodejs/bin/node",
+    "Platform": "linux",
+    "Portainer": {
+        "ResourceControl": {
+            "Id": 85,
+            "ResourceId": "24b55bb2f410b20c53ab863c219b4ca16a3268fa62839e49b47dad37990daba7",
+            "SubResourceIds": [],
+            "Type": 1,
+            "UserAccesses": [],
+            "TeamAccesses": [],
+            "Public": false,
+            "AdministratorsOnly": true,
+            "System": false
+        }
+    },
+    "ProcessLabel": "",
+    "ResolvConfPath": "/var/lib/docker/containers/24b55bb2f410b20c53ab863c219b4ca16a3268fa62839e49b47dad37990daba7/resolv.conf",
+    "RestartCount": 0,
+    "State": {
+        "Dead": false,
+        "Error": "",
+        "ExitCode": 0,
+        "FinishedAt": "0001-01-01T00:00:00Z",
+        "Health": {
+            "FailingStreak": 0,
+            "Log": [
+                {
+                    "End": "2026-08-03T15:13:00.836175941+07:00",
+                    "ExitCode": 0,
+                    "Output": "✓ Health check passed\n",
+                    "Start": "2026-08-03T15:13:00.76029676+07:00"
+                },
+                {
+                    "End": "2026-08-03T15:13:30.912934491+07:00",
+                    "ExitCode": 0,
+                    "Output": "✓ Health check passed\n",
+                    "Start": "2026-08-03T15:13:30.83675478+07:00"
+                },
+                {
+                    "End": "2026-08-03T15:14:00.997380835+07:00",
+                    "ExitCode": 0,
+                    "Output": "✓ Health check passed\n",
+                    "Start": "2026-08-03T15:14:00.913299339+07:00"
+                },
+                {
+                    "End": "2026-08-03T15:14:31.073725501+07:00",
+                    "ExitCode": 0,
+                    "Output": "✓ Health check passed\n",
+                    "Start": "2026-08-03T15:14:30.998151513+07:00"
+                },
+                {
+                    "End": "2026-08-03T15:15:01.153599596+07:00",
+                    "ExitCode": 0,
+                    "Output": "✓ Health check passed\n",
+                    "Start": "2026-08-03T15:15:01.074169975+07:00"
+                }
+            ],
+            "Status": "healthy"
+        },
+        "OOMKilled": false,
+        "Paused": false,
+        "Pid": 124410,
+        "Restarting": false,
+        "Running": true,
+        "StartedAt": "2026-08-03T05:51:32.043233903Z",
+        "Status": "running"
+    }
+}

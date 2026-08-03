@@ -1,0 +1,215 @@
+name: aiostreams-stack
+
+services:
+  pgvector:
+    image: pgvector/pgvector:0.8.2-pg18-trixie
+    container_name: pgvector
+    restart: unless-stopped
+    volumes:
+      - /home/duckq1u/Documents/docker-volumes/aiostreams-volumes/postgres:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d aiostreams"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    networks:
+      - aiostreams_network
+    environment:
+      POSTGRES_USER: "${POSTGRES_USER}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+      POSTGRES_DB: "${POSTGRES_DB}"
+      PGDATA: "${PGDATA}"
+
+  postgres-init:
+    image: pgvector/pgvector:0.8.2-pg18-trixie
+    container_name: postgres-init
+    restart: "no"
+    depends_on:
+      pgvector:
+        condition: service_healthy
+    command:
+      - /bin/sh
+      - -ec
+      - |
+        if ! PGPASSWORD="$${POSTGRES_PASSWORD}" psql \
+          -h pgvector \
+          -U "$${POSTGRES_USER}" \
+          -d postgres \
+          -tAc "SELECT 1 FROM pg_database WHERE datname='$${STREMTHRU_POSTGRES_DB}'" \
+          | grep -q 1; then
+          PGPASSWORD="$${POSTGRES_PASSWORD}" createdb \
+            -h pgvector \
+            -U "$${POSTGRES_USER}" \
+            "$${STREMTHRU_POSTGRES_DB}"
+        fi
+    networks:
+      - aiostreams_network
+    environment:
+      POSTGRES_USER: "${POSTGRES_USER}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+      STREMTHRU_POSTGRES_DB: "${STREMTHRU_POSTGRES_DB}"
+
+  phimapi-addon:
+    image: phimapi-stremio-addon:latest
+    container_name: phimapi-addon
+    restart: unless-stopped
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://localhost:7000/manifest.json').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+    networks:
+      - aiostreams_network
+    environment:
+      PORT: "${PHIMAPI_PORT}"
+      PHIMAPI_URL: "${PHIMAPI_URL}"
+      OPHIM_URL: "${OPHIM_URL}"
+      SEARCH_LIMIT: "${SEARCH_LIMIT}"
+      NODE_ENV: "${NODE_ENV}"
+
+  valkey:
+    image: valkey/valkey:9.1.1-alpine3.24
+    container_name: valkey
+    restart: unless-stopped
+    command:
+      - valkey-server
+      - --appendonly
+      - "no"
+      - --save
+      - ""
+      - --requirepass
+      - "${VALKEY_PASSWORD}"
+      - --maxmemory
+      - "${VALKEY_MAXMEMORY}"
+      - --maxmemory-policy
+      - allkeys-lfu
+    healthcheck:
+      test: ["CMD-SHELL", "valkey-cli -e -a \"$${VALKEY_PASSWORD}\" --no-auth-warning ping | grep -q PONG"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks:
+      - aiostreams_network
+    environment:
+      VALKEY_PASSWORD: "${VALKEY_PASSWORD}"
+
+  stremthru:
+    image: muniftanjim/stremthru:latest
+    container_name: stremthru
+    restart: unless-stopped
+    depends_on:
+      valkey:
+        condition: service_healthy
+      postgres-init:
+        condition: service_completed_successfully
+    volumes:
+      - /home/duckq1u/Documents/docker-volumes/aiostreams-volumes/streamthru:/app/data
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1:8080/ || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    networks:
+      - aiostreams_network
+    environment:
+      STREMTHRU_BASE_URL: "${STREMTHRU_BASE_URL}"
+      STREMTHRU_PORT: "${STREMTHRU_PORT}"
+      STREMTHRU_DATA_DIR: "${STREMTHRU_DATA_DIR}"
+      STREMTHRU_LOG_LEVEL: "${STREMTHRU_LOG_LEVEL}"
+      STREMTHRU_LOG_FORMAT: "${STREMTHRU_LOG_FORMAT}"
+      STREMTHRU_DATABASE_URI: "${STREMTHRU_DATABASE_URI}"
+      STREMTHRU_REDIS_URI: "${STREMTHRU_REDIS_URI}"
+      STREMTHRU_AUTH: "${STREMTHRU_AUTH}"
+      STREMTHRU_AUTH_ADMIN: "${STREMTHRU_AUTH_ADMIN}"
+      STREMTHRU_STORE_AUTH: "${STREMTHRU_USERNAME}:torbox:${TORBOX_API_KEY}"
+      STREMTHRU_STORE_CONTENT_PROXY: "${STREMTHRU_STORE_CONTENT_PROXY}"
+      STREMTHRU_STORE_CONTENT_CACHED_STALE_TIME: "${STREMTHRU_STORE_CONTENT_CACHED_STALE_TIME}"
+      STREMTHRU_CONTENT_PROXY_CONNECTION_LIMIT: "${STREMTHRU_CONTENT_PROXY_CONNECTION_LIMIT}"
+      STREMTHRU_TUNNEL: "${STREMTHRU_TUNNEL}"
+      STREMTHRU_STORE_TUNNEL: "${STREMTHRU_STORE_TUNNEL}"
+      STREMTHRU_VAULT_SECRET: "${STREMTHRU_VAULT_SECRET}"
+      STREMTHRU_STREMIO_NEWZ_INDEXER_MAX_TIMEOUT: "${STREMTHRU_STREMIO_NEWZ_INDEXER_MAX_TIMEOUT}"
+      STREMTHRU_STREMIO_NEWZ_PLAYBACK_WAIT_TIME: "${STREMTHRU_STREMIO_NEWZ_PLAYBACK_WAIT_TIME}"
+      STREMTHRU_NEWZ_MAX_CONNECTION_PER_STREAM: "${STREMTHRU_NEWZ_MAX_CONNECTION_PER_STREAM}"
+      STREMTHRU_NEWZ_NZB_FILE_CACHE_SIZE: "${STREMTHRU_NEWZ_NZB_FILE_CACHE_SIZE}"
+      STREMTHRU_NEWZ_SEGMENT_CACHE_SIZE: "${STREMTHRU_NEWZ_SEGMENT_CACHE_SIZE}"
+      STREMTHRU_NEWZ_STREAM_BUFFER_SIZE: "${STREMTHRU_NEWZ_STREAM_BUFFER_SIZE}"
+      STREMTHRU_STREMIO_TORZ_INDEXER_MAX_TIMEOUT: "${STREMTHRU_STREMIO_TORZ_INDEXER_MAX_TIMEOUT}"
+      STREMTHRU_STREMIO_TORZ_LAZY_PULL: "${STREMTHRU_STREMIO_TORZ_LAZY_PULL}"
+      STREMTHRU_TORZ_TORRENT_FILE_CACHE_SIZE: "${STREMTHRU_TORZ_TORRENT_FILE_CACHE_SIZE}"
+      STREMTHRU_TORZ_TORRENT_FILE_CACHE_TTL: "${STREMTHRU_TORZ_TORRENT_FILE_CACHE_TTL}"
+      STREMTHRU_STREMIO_STORE_CATALOG_ITEM_LIMIT: "${STREMTHRU_STREMIO_STORE_CATALOG_ITEM_LIMIT}"
+      STREMTHRU_STREMIO_STORE_CATALOG_CACHE_TIME: "${STREMTHRU_STREMIO_STORE_CATALOG_CACHE_TIME}"
+
+  aiostreams:
+    image: viren070/aiostreams:nightly
+    container_name: AIOstreams
+    restart: unless-stopped
+    depends_on:
+      pgvector:
+        condition: service_healthy
+      phimapi-addon:
+        condition: service_healthy
+      valkey:
+        condition: service_healthy
+      stremthru:
+        condition: service_healthy
+    ports:
+      - "8570:3000"
+    volumes:
+      - /home/duckq1u/Documents/docker-volumes/aiostreams-volumes/aiostreams:/app/data
+    healthcheck:
+      test: ["CMD", "/nodejs/bin/node", "/app/scripts/healthcheck.js"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    networks:
+      - aiostreams_network
+    environment:
+      BASE_URL: "${BASE_URL}"
+      SECRET_KEY: "${AIOSTREAMS_SECRET_KEY}"
+      DATABASE_URI: "${DATABASE_URI}"
+      REDIS_URI: "${AIOSTREAMS_REDIS_URI}"
+      REDIS_TIMEOUT: "${AIOSTREAMS_REDIS_TIMEOUT}"
+      AIOSTREAMS_AUTH: "${AIOSTREAMS_AUTH}"
+      MAX_ADDONS: "${MAX_ADDONS}"
+      DISABLE_RATE_LIMITS: "${DISABLE_RATE_LIMITS}"
+      ANALYTICS_ENABLED: "${ANALYTICS_ENABLED}"
+      USER_ANALYTICS_ENABLED: "${USER_ANALYTICS_ENABLED}"
+      BUILTIN_STREMTHRU_URL: "${BUILTIN_STREMTHRU_URL}"
+      STREMTHRU_STORE_URL: "${STREMTHRU_STORE_URL}"
+      STREMTHRU_TORZ_URL: "${STREMTHRU_TORZ_URL}"
+      ENCRYPT_STREMTHRU_URLS: "${ENCRYPT_STREMTHRU_URLS}"
+      TORBOX_USENET_VIA_STREMTHRU: "${TORBOX_USENET_VIA_STREMTHRU}"
+      BUILTIN_DEBRID_INSTANT_AVAILABILITY_CACHE_TTL: "${BUILTIN_DEBRID_INSTANT_AVAILABILITY_CACHE_TTL}"
+      BUILTIN_DEBRID_PLAYBACK_LINK_CACHE_TTL: "${BUILTIN_DEBRID_PLAYBACK_LINK_CACHE_TTL}"
+      BUILTIN_DEBRID_LIBRARY_CACHE_TTL: "${BUILTIN_DEBRID_LIBRARY_CACHE_TTL}"
+      BUILTIN_GET_TORRENT_LAZILY: "${BUILTIN_GET_TORRENT_LAZILY}"
+      FORCED_SERVICE_CREDENTIALS: "torbox.apiKey=${TORBOX_API_KEY}"
+      DISABLED_SERVICES: "${DISABLED_SERVICES}"
+      TORBOX_STREMIO_URL: "${TORBOX_STREMIO_URL}"
+      DEFAULT_TORBOX_TIMEOUT: "${DEFAULT_TORBOX_TIMEOUT}"
+      BUILTIN_TORBOX_SEARCH_SEARCH_API_TIMEOUT: "${BUILTIN_TORBOX_SEARCH_SEARCH_API_TIMEOUT}"
+      BUILTIN_TORBOX_SEARCH_SEARCH_API_CACHE_TTL: "${BUILTIN_TORBOX_SEARCH_SEARCH_API_CACHE_TTL}"
+      BUILTIN_TORBOX_SEARCH_METADATA_CACHE_TTL: "${BUILTIN_TORBOX_SEARCH_METADATA_CACHE_TTL}"
+      BUILTIN_SCRAPE_QUERY_CONCURRENCY: "${BUILTIN_SCRAPE_QUERY_CONCURRENCY}"
+      BUILTIN_GET_TORRENT_TIMEOUT: "${BUILTIN_GET_TORRENT_TIMEOUT}"
+      BUILTIN_GET_TORRENT_CONCURRENCY: "${BUILTIN_GET_TORRENT_CONCURRENCY}"
+      PRELOAD_STREAMS_CONCURRENCY: "${PRELOAD_STREAMS_CONCURRENCY}"
+      PRELOAD_MIN_INTERVAL: "${PRELOAD_MIN_INTERVAL}"
+      BACKGROUND_RESOURCE_REQUESTS_ENABLED: "${BACKGROUND_RESOURCE_REQUESTS_ENABLED}"
+      BACKGROUND_RESOURCE_REQUEST_TIMEOUT: "${BACKGROUND_RESOURCE_REQUEST_TIMEOUT}"
+
+networks:
+  aiostreams_network:
+    external: true
+    name: aiostreams_network
