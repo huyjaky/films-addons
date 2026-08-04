@@ -1,0 +1,1626 @@
+{
+  "trusted": false,
+  "showChanges": true,
+  "preferredResolutions": [
+    "2160p",
+    "1440p",
+    "1080p",
+    "720p",
+    "576p",
+    "480p",
+    "360p",
+    "240p",
+    "144p",
+    "Unknown"
+  ],
+  "excludedQualities": [
+    "CAM",
+    "SCR",
+    "TS",
+    "TC"
+  ],
+  "preferredQualities": [
+    "BluRay REMUX",
+    "BluRay",
+    "WEB-DL",
+    "WEBRip",
+    "HDRip",
+    "HC HD-Rip",
+    "DVD REMUX",
+    "DVDRip",
+    "HDTV",
+    "CAM",
+    "TS",
+    "TC",
+    "SCR",
+    "Unknown"
+  ],
+  "excludedLanguages": [],
+  "includedLanguages": [],
+  "requiredLanguages": [],
+  "preferredLanguages": [],
+  "excludedSubtitles": [],
+  "includedSubtitles": [],
+  "requiredSubtitles": [],
+  "preferredSubtitles": [],
+  "excludedVisualTags": [
+    "3D"
+  ],
+  "includedVisualTags": [],
+  "requiredVisualTags": [],
+  "preferredVisualTags": [],
+  "excludedAudioTags": [],
+  "includedAudioTags": [],
+  "requiredAudioTags": [],
+  "preferredAudioTags": [],
+  "excludedAudioChannels": [],
+  "includedAudioChannels": [],
+  "requiredAudioChannels": [],
+  "preferredAudioChannels": [],
+  "preferredStreamTypes": [],
+  "preferredEncodes": [],
+  "seederRangeTypes": [],
+  "ageRangeTypes": [
+    "usenet"
+  ],
+  "digitalReleaseFilter": {
+    "enabled": false,
+    "tolerance": 0,
+    "requestTypes": [],
+    "addons": [],
+    "showInfoOnFilter": true
+  },
+  "enableSeadex": true,
+  "excludeCachedFromAddons": [],
+  "excludeCachedFromServices": [],
+  "excludeCachedFromStreamTypes": [],
+  "excludeUncachedFromAddons": [],
+  "excludeUncachedFromServices": [],
+  "excludeUncachedFromStreamTypes": [],
+  "regexOverrides": [],
+  "dynamicAddonFetching": {
+    "enabled": true,
+    "condition": "count(cached(totalStreams)) >= 3 or totalTimeTaken > 2500"
+  },
+  "groups": {
+    "enabled": false
+  },
+  "sortCriteria": {
+    "global": [
+      {
+        "key": "streamType",
+        "direction": "desc"
+      },
+      {
+        "key": "cached",
+        "direction": "desc"
+      },
+      {
+        "key": "library",
+        "direction": "desc"
+      },
+      {
+        "key": "resolution",
+        "direction": "desc"
+      },
+      {
+        "key": "quality",
+        "direction": "desc"
+      },
+      {
+        "key": "streamExpressionScore",
+        "direction": "desc"
+      },
+      {
+        "key": "regexPatterns",
+        "direction": "desc"
+      },
+      {
+        "key": "visualTag",
+        "direction": "desc"
+      },
+      {
+        "key": "audioTag",
+        "direction": "desc"
+      },
+      {
+        "key": "audioChannel",
+        "direction": "desc"
+      },
+      {
+        "key": "encode",
+        "direction": "desc"
+      },
+      {
+        "key": "language",
+        "direction": "desc"
+      },
+      {
+        "key": "subtitle",
+        "direction": "desc"
+      },
+      {
+        "key": "size",
+        "direction": "desc"
+      }
+    ],
+    "movies": [],
+    "series": [],
+    "anime": [],
+    "cached": [],
+    "uncached": [],
+    "cachedMovies": [],
+    "uncachedMovies": [],
+    "cachedSeries": [],
+    "uncachedSeries": [],
+    "cachedAnime": [],
+    "uncachedAnime": []
+  },
+  "posterService": "aioratings",
+  "formatter": {
+    "id": "custom",
+    "definitions": {
+      "custom": {
+        "name": "{stream.proxied::istrue[\"🕵️ \"||\"\"]}{stream.private::istrue[\"🔑 \"||\"\"]}{stream.type::=p2p[\"[P2P] \"||\"\"]}{?[{service.shortName}?}{service.cached::istrue[\"⚡] \"||\"\"]}{service.cached::isfalse[\"⏳] \"||\"\"]}{addon.name}{stream.library::istrue[\" (Your Media)\"||\"\"]} {?{stream.resolution}?}{stream.seadexBest::istrue[\" (Best)\"||\"\"]}{stream.seadex::istrue::and::stream.seadexBest::isfalse[\" (SeaDex Alt.)\"||\"\"]}{stream.rseMatched::exists::and::stream.seadex::isfalse::and::stream.rseMatched::string::~T1::or::stream.rseMatched::string::~T2::or::stream.rseMatched::string::~T3::or::stream.rseMatched::string::~T4::or::stream.rseMatched::string::~T5::or::stream.rseMatched::string::~T6::or::stream.rseMatched::string::~T7::or::stream.rseMatched::string::~T8[\" ({stream.rseMatched::first})\"||\"\"]}{stream.regexMatched::exists::and::stream.rseMatched::exists::isfalse::and::stream.seadex::isfalse[\" ({stream.regexMatched})\"||\"\"]}",
+        "description": "{?🎥 {stream.quality} ?}{?🎞️ {stream.encode} ?}{?🏷️ {stream.releaseGroup} ?}{?📡 {stream.network} ?}\n{?📺 {stream.visualTags::join(' | ')} ?}{?🎧 {stream.audioTags::join(' | ')} ?}{?🔊 {stream.audioChannels::join(' | ')}?}\n{stream.size::>0[\"📦 {stream.size::sbytes} \"||\"\"]}{stream.folderSize::>0[\"/ {stream.folderSize::sbytes} \"||\"\"]}\n{stream.bitrate::>0[\"🌩 {stream.bitrate::sbitrate}\"||\"\"]}\n{stream.duration::>0[\"⏱️ {stream.duration::time} \"||\"\"]}{stream.seeders::>0[\"👥 {stream.seeders} \"||\"\"]}{?📅 {stream.age} ?}{?🔍 {stream.indexer}?}\n{?🌎 {stream.languages::join(' | ')}?}{?📝 {stream.subtitles::join(' | ')}?}\n{?ℹ️ {stream.message}?}\n      "
+      },
+      "overrides": {
+        "gdrive": {
+          "name": "{stream.proxied::istrue[\"🕵️ \"||\"\"]}{stream.private::istrue[\"🔑 \"||\"\"]}{stream.type::=p2p[\"[P2P] \"||\"\"]}{?[{service.shortName}?}{service.cached::istrue[\"⚡] \"||\"\"]}{service.cached::isfalse[\"⏳] \"||\"\"]}{addon.name}{stream.library::istrue[\" (Your Media)\"||\"\"]} {?{stream.resolution}?}{stream.seadexBest::istrue[\" (Best)\"||\"\"]}{stream.seadex::istrue::and::stream.seadexBest::isfalse[\" (SeaDex Alt.)\"||\"\"]}{stream.rseMatched::exists::and::stream.seadex::isfalse::and::stream.rseMatched::string::~T1::or::stream.rseMatched::string::~T2::or::stream.rseMatched::string::~T3::or::stream.rseMatched::string::~T4::or::stream.rseMatched::string::~T5::or::stream.rseMatched::string::~T6::or::stream.rseMatched::string::~T7::or::stream.rseMatched::string::~T8[\" ({stream.rseMatched::first})\"||\"\"]}{stream.regexMatched::exists::and::stream.rseMatched::exists::isfalse::and::stream.seadex::isfalse[\" ({stream.regexMatched})\"||\"\"]}",
+          "description": "{?🎥 {stream.quality} ?}{?🎞️ {stream.encode} ?}{?🏷️ {stream.releaseGroup} ?}{?📡 {stream.network} ?}\n{?📺 {stream.visualTags::join(' | ')} ?}{?🎧 {stream.audioTags::join(' | ')} ?}{?🔊 {stream.audioChannels::join(' | ')}?}\n{stream.size::>0[\"📦 {stream.size::sbytes} \"||\"\"]}{stream.folderSize::>0[\"/ {stream.folderSize::sbytes} \"||\"\"]}\n{stream.bitrate::>0[\"🌩 {stream.bitrate::sbitrate}\"||\"\"]}\n{stream.duration::>0[\"⏱️ {stream.duration::time} \"||\"\"]}{stream.seeders::>0[\"👥 {stream.seeders} \"||\"\"]}{?📅 {stream.age} ?}{?🔍 {stream.indexer}?}\n{?🌎 {stream.languages::join(' | ')}?}{?📝 {stream.subtitles::join(' | ')}?}\n{?ℹ️ {stream.message}?}\n      "
+        },
+        "tamtaro": {
+          "name": "{stream.proxied::istrue[\"🕵️ \"||\"\"]}{stream.private::istrue[\"🔑 \"||\"\"]}{stream.type::=p2p[\"[P2P] \"||\"\"]}{?[{service.shortName}?}{service.cached::istrue[\"⚡] \"||\"\"]}{service.cached::isfalse[\"⏳] \"||\"\"]}{addon.name}{stream.library::istrue[\" (Your Media)\"||\"\"]} {?{stream.resolution}?}{stream.seadexBest::istrue[\" (Best)\"||\"\"]}{stream.seadex::istrue::and::stream.seadexBest::isfalse[\" (SeaDex Alt.)\"||\"\"]}{stream.rseMatched::exists::and::stream.seadex::isfalse::and::stream.rseMatched::string::~T1::or::stream.rseMatched::string::~T2::or::stream.rseMatched::string::~T3::or::stream.rseMatched::string::~T4::or::stream.rseMatched::string::~T5::or::stream.rseMatched::string::~T6::or::stream.rseMatched::string::~T7::or::stream.rseMatched::string::~T8[\" ({stream.rseMatched::first})\"||\"\"]}{stream.regexMatched::exists::and::stream.rseMatched::exists::isfalse::and::stream.seadex::isfalse[\" ({stream.regexMatched})\"||\"\"]}",
+          "description": "{?🎥 {stream.quality} ?}{?🎞️ {stream.encode} ?}{?🏷️ {stream.releaseGroup} ?}{?📡 {stream.network} ?}\n{?📺 {stream.visualTags::join(' | ')} ?}{?🎧 {stream.audioTags::join(' | ')} ?}{?🔊 {stream.audioChannels::join(' | ')}?}\n{stream.size::>0[\"📦 {stream.size::sbytes} \"||\"\"]}{stream.folderSize::>0[\"/ {stream.folderSize::sbytes} \"||\"\"]}\n{stream.bitrate::>0[\"🌩 {stream.bitrate::sbitrate}\"||\"\"]}\n{stream.duration::>0[\"⏱️ {stream.duration::time} \"||\"\"]}{stream.seeders::>0[\"👥 {stream.seeders} \"||\"\"]}{?📅 {stream.age} ?}{?🔍 {stream.indexer}?}\n{?🌎 {stream.languages::join(' | ')}?}{?📝 {stream.subtitles::join(' | ')}?}\n{?ℹ️ {stream.message}?}\n      "
+        }
+      },
+      "saved": {
+        "GG custom": {
+          "name": "{stream.proxied::istrue[\"🕵️ \"||\"\"]}{stream.private::istrue[\"🔑 \"||\"\"]}{stream.type::=p2p[\"[P2P] \"||\"\"]}{?[{service.shortName}?}{service.cached::istrue[\"⚡] \"||\"\"]}{service.cached::isfalse[\"⏳] \"||\"\"]}{addon.name}{stream.library::istrue[\" (Your Media)\"||\"\"]} {?{stream.resolution}?}{stream.seadexBest::istrue[\" (Best)\"||\"\"]}{stream.seadex::istrue::and::stream.seadexBest::isfalse[\" (SeaDex Alt.)\"||\"\"]}{stream.rseMatched::exists::and::stream.seadex::isfalse::and::stream.rseMatched::string::~T1::or::stream.rseMatched::string::~T2::or::stream.rseMatched::string::~T3::or::stream.rseMatched::string::~T4::or::stream.rseMatched::string::~T5::or::stream.rseMatched::string::~T6::or::stream.rseMatched::string::~T7::or::stream.rseMatched::string::~T8[\" ({stream.rseMatched::first})\"||\"\"]}{stream.regexMatched::exists::and::stream.rseMatched::exists::isfalse::and::stream.seadex::isfalse[\" ({stream.regexMatched})\"||\"\"]}",
+          "description": "{?🎥 {stream.quality} ?}{?🎞️ {stream.encode} ?}{?🏷️ {stream.releaseGroup} ?}{?📡 {stream.network} ?}\n{?📺 {stream.visualTags::join(' | ')} ?}{?🎧 {stream.audioTags::join(' | ')} ?}{?🔊 {stream.audioChannels::join(' | ')}?}\n{stream.size::>0[\"📦 {stream.size::sbytes} \"||\"\"]}{stream.folderSize::>0[\"/ {stream.folderSize::sbytes} \"||\"\"]}\n{stream.bitrate::>0[\"🌩 {stream.bitrate::sbitrate}\"||\"\"]}\n{stream.duration::>0[\"⏱️ {stream.duration::time} \"||\"\"]}{stream.seeders::>0[\"👥 {stream.seeders} \"||\"\"]}{?📅 {stream.age} ?}{?🔍 {stream.indexer}?}\n{?🌎 {stream.languages::join(' | ')}?}{?📝 {stream.subtitles::join(' | ')}?}\n{?ℹ️ {stream.message}?}\n      "
+        }
+      }
+    }
+  },
+  "proxy": {
+    "id": "builtin",
+    "proxiedAddons": [],
+    "proxiedServices": []
+  },
+  "hideErrors": false,
+  "hideErrorsForResources": [],
+  "statistics": {
+    "enabled": false,
+    "position": "bottom",
+    "statsToShow": [
+      "addon",
+      "filter",
+      "timing"
+    ],
+    "showFilterStatsOnNoStreams": true
+  },
+  "yearMatching": {
+    "strictTypes": [
+      "movie"
+    ],
+    "requestTypes": [],
+    "addons": []
+  },
+  "titleMatching": {
+    "requestTypes": [],
+    "addons": []
+  },
+  "seasonEpisodeMatching": {
+    "enabled": true,
+    "strict": true,
+    "requestTypes": [
+      "movie",
+      "series",
+      "channel",
+      "tv",
+      "anime"
+    ],
+    "addons": [
+      "4d3",
+      "fde",
+      "1df",
+      "7ab"
+    ]
+  },
+  "episodeTitleMatching": {
+    "requestTypes": [],
+    "addons": []
+  },
+  "languageInference": {
+    "enabled": true,
+    "sources": []
+  },
+  "deduplicator": {
+    "enabled": true,
+    "multiGroupBehaviour": "aggressive",
+    "keys": [
+      "filename",
+      "infoHash"
+    ],
+    "cached": "single_result",
+    "uncached": "per_service",
+    "p2p": "single_result",
+    "http": "disabled",
+    "live": "disabled",
+    "youtube": "disabled",
+    "external": "disabled",
+    "smartDetectAttributes": [
+      "size",
+      "resolution",
+      "quality",
+      "visualTags",
+      "audioTags",
+      "audioChannels",
+      "languages",
+      "encode",
+      "edition",
+      "network",
+      "remastered",
+      "releaseGroup"
+    ],
+    "smartDetectRounding": 10,
+    "libraryBehaviour": "ignore"
+  },
+  "autoPlay": {
+    "enabled": true,
+    "method": "matchingFile",
+    "attributes": [
+      "resolution",
+      "quality",
+      "releaseGroup"
+    ]
+  },
+  "precacheNextEpisode": true,
+  "precacheSelector": "count(cached(streams)) == 0 ? uncached(streams) : []",
+  "precacheSingleStream": true,
+  "preloadStreams": {
+    "enabled": true,
+    "selector": "slice(cached(streams), 0, 3)"
+  },
+  "services": [
+    {
+      "id": "torbox",
+      "enabled": true,
+      "credentials": {}
+    },
+    {
+      "id": "stremthru_newz",
+      "enabled": true,
+      "credentials": {}
+    }
+  ],
+  "presets": [
+    {
+      "type": "torrentio",
+      "instanceId": "4d3",
+      "enabled": true,
+      "options": {
+        "name": "Torrentio",
+        "timeout": 20000,
+        "resources": [
+          "stream",
+          "catalog",
+          "meta"
+        ],
+        "providers": [
+          "yts",
+          "eztv",
+          "rarbg",
+          "1337x",
+          "thepiratebay",
+          "kickasstorrents",
+          "torrentgalaxy",
+          "magnetdl",
+          "horriblesubs",
+          "nyaasi",
+          "tokyotosho",
+          "anidex",
+          "nekobt",
+          "rutor",
+          "rutracker",
+          "comando",
+          "bludv",
+          "micoleaodublado",
+          "torrent9",
+          "ilcorsaronero",
+          "mejortorrent",
+          "wolfmax4k",
+          "cinecalidad",
+          "besttorrents"
+        ],
+        "services": [
+          "torbox"
+        ],
+        "mediaTypes": [
+          "movie",
+          "series",
+          "anime"
+        ],
+        "useMultipleInstances": false
+      }
+    },
+    {
+      "type": "knaben",
+      "instanceId": "fde",
+      "enabled": true,
+      "options": {
+        "name": "Knaben",
+        "timeout": 20000,
+        "services": [
+          "torbox"
+        ],
+        "mediaTypes": [
+          "movie",
+          "series",
+          "anime"
+        ],
+        "useMultipleInstances": false
+      }
+    },
+    {
+      "type": "stremthruTorz",
+      "instanceId": "1df",
+      "enabled": true,
+      "options": {
+        "name": "StremThru Torz",
+        "timeout": 20000,
+        "resources": [
+          "stream"
+        ],
+        "mediaTypes": [
+          "movie",
+          "series",
+          "anime"
+        ],
+        "services": [
+          "torbox"
+        ],
+        "includeP2P": true,
+        "useMultipleInstances": false
+      }
+    },
+    {
+      "type": "animetosho",
+      "instanceId": "7ab",
+      "enabled": true,
+      "options": {
+        "name": "AnimeTosho",
+        "timeout": 20000,
+        "services": [
+          "torbox"
+        ],
+        "mediaTypes": [
+          "anime"
+        ],
+        "useMultipleInstances": false
+      }
+    },
+    {
+      "type": "torrent-catalogs",
+      "instanceId": "d1d",
+      "enabled": true,
+      "options": {
+        "name": "Torrent Catalogs",
+        "timeout": 7000,
+        "resources": [
+          "catalog"
+        ]
+      }
+    },
+    {
+      "type": "anime-catalogs",
+      "instanceId": "abc",
+      "enabled": true,
+      "options": {
+        "name": "Anime Catalogs",
+        "timeout": 7000,
+        "resources": [
+          "catalog"
+        ],
+        "dubbed": true,
+        "cinemeta": true,
+        "search": true,
+        "mal_catalogs": [
+          "myanimelist_top-all-time",
+          "myanimelist_top-airing",
+          "myanimelist_top-series",
+          "myanimelist_top-movies",
+          "myanimelist_popular",
+          "myanimelist_most-favorited"
+        ],
+        "anidb_catalogs": [
+          "anidb_popular",
+          "anidb_latest-started",
+          "anidb_latest-ended",
+          "anidb_best-of-10s",
+          "anidb_best-of-00s",
+          "anidb_best-of-90s",
+          "anidb_best-of-80s"
+        ],
+        "anilist_catalogs": [
+          "anilist_trending-now",
+          "anilist_popular-this-season",
+          "anilist_upcoming-next-season",
+          "anilist_all-time-popular",
+          "anilist_top-anime"
+        ],
+        "kitsu_catalogs": [
+          "kitsu_top-airing",
+          "kitsu_most-popular",
+          "kitsu_highest-rated",
+          "kitsu_newest"
+        ],
+        "anisearch_catalogs": [
+          "anisearch_top-all-time",
+          "anisearch_trending",
+          "anisearch_popular"
+        ],
+        "livechart_catalogs": [
+          "livechart_popular",
+          "livechart_top-rated"
+        ],
+        "notifymoe_catalogs": [
+          "notifymoe_airing-now"
+        ]
+      }
+    },
+    {
+      "type": "anime-kitsu",
+      "instanceId": "e20",
+      "enabled": true,
+      "options": {
+        "name": "Anime Kitsu",
+        "timeout": 7000,
+        "resources": [
+          "catalog",
+          "meta"
+        ]
+      }
+    },
+    {
+      "type": "opensubtitles-v3-plus",
+      "instanceId": "ad2",
+      "enabled": true,
+      "options": {
+        "name": "OpenSubtitles V3+",
+        "timeout": 7000,
+        "resources": [
+          "subtitles"
+        ],
+        "language": [
+          "vi",
+          "en"
+        ],
+        "sources": "all",
+        "includeAiTranslated": false,
+        "movieHashPlusAutoAdjustment": true
+      }
+    },
+    {
+      "type": "subsource",
+      "instanceId": "f80",
+      "enabled": true,
+      "options": {
+        "name": "SubSource",
+        "timeout": 7000,
+        "resources": [
+          "subtitles"
+        ],
+        "language": [
+          "English",
+          "Vietnamese"
+        ],
+        "subtitleTypes": [
+          1,
+          2,
+          4
+        ],
+        "hearingImpairment": "hiInclude"
+      }
+    },
+    {
+      "type": "subdl",
+      "instanceId": "2f5",
+      "enabled": true,
+      "options": {
+        "name": "SubDL",
+        "timeout": 7000,
+        "resources": [
+          "subtitles"
+        ],
+        "language": [
+          "VI",
+          "EN"
+        ],
+        "hearingImpairment": "hiInclude"
+      }
+    },
+    {
+      "type": "tmdb-addon",
+      "instanceId": "f86",
+      "enabled": true,
+      "options": {
+        "name": "The Movie Database",
+        "timeout": 7000,
+        "resources": [
+          "catalog",
+          "meta"
+        ],
+        "Enable Adult Content": true,
+        "hideEpisodeThumbnails": false,
+        "provideImdbId": true,
+        "language": "en-US"
+      }
+    },
+    {
+      "type": "streaming-catalogs",
+      "instanceId": "9ca",
+      "enabled": true,
+      "options": {
+        "name": "Streaming Catalogs",
+        "timeout": 7000,
+        "resources": [
+          "catalog"
+        ],
+        "catalogs": [
+          "nfx",
+          "hbm",
+          "dnp",
+          "amp",
+          "atp"
+        ]
+      }
+    },
+    {
+      "type": "custom",
+      "instanceId": "1f2",
+      "enabled": true,
+      "options": {
+        "name": "Ophim | KKphim",
+        "manifestUrl": "http://172.32.50.3:7000/manifest.json",
+        "timeout": 20000,
+        "resources": [
+          "stream",
+          "subtitles",
+          "catalog",
+          "meta",
+          "addon_catalog"
+        ],
+        "mediaTypes": [
+          "movie",
+          "series",
+          "anime"
+        ],
+        "pinPosition": "top",
+        "libraryAddon": true,
+        "formatPassthrough": true,
+        "resultPassthrough": true
+      }
+    },
+    {
+      "type": "custom",
+      "instanceId": "75a",
+      "enabled": true,
+      "options": {
+        "name": "CartoonNetwork",
+        "manifestUrl": "https://e1fc7808b5de-stremio-cartoon-network.baby-beamup.club/manifest.json",
+        "timeout": 20000,
+        "resources": [
+          "stream",
+          "subtitles",
+          "catalog",
+          "meta",
+          "addon_catalog"
+        ],
+        "mediaTypes": [
+          "movie",
+          "series",
+          "anime"
+        ],
+        "pinPosition": "top",
+        "libraryAddon": true,
+        "formatPassthrough": true,
+        "resultPassthrough": true
+      }
+    }
+  ],
+  "catalogModifications": [
+    {
+      "id": "1f2e3b0.phimapi-series",
+      "type": "series",
+      "name": "Phim bộ PhimAPI",
+      "shuffle": false,
+      "enabled": true,
+      "usePosterService": true,
+      "hideable": true,
+      "searchable": true,
+      "addonName": "Ophim | KKphim"
+    },
+    {
+      "id": "1f2e3b0.phimapi-movies",
+      "type": "movie",
+      "name": "Phim lẻ PhimAPI",
+      "shuffle": false,
+      "enabled": true,
+      "usePosterService": true,
+      "hideable": true,
+      "searchable": true,
+      "addonName": "Ophim | KKphim"
+    },
+    {
+      "id": "aiostreams.merged.1785729580471",
+      "type": "movie",
+      "name": "Movies streaming",
+      "shuffle": false,
+      "enabled": true,
+      "usePosterService": true,
+      "hideable": true,
+      "searchable": false
+    },
+    {
+      "id": "aiostreams.merged.1785729551423",
+      "type": "series",
+      "name": "Series streaming",
+      "shuffle": false,
+      "enabled": true,
+      "usePosterService": true,
+      "hideable": true,
+      "searchable": false
+    },
+    {
+      "id": "d1de3b0.top-movies",
+      "type": "movie",
+      "name": "Top seeded",
+      "shuffle": false,
+      "enabled": true,
+      "usePosterService": true,
+      "hideable": true,
+      "searchable": false,
+      "addonName": "Torrent Catalogs"
+    },
+    {
+      "id": "d1de3b0.top-series",
+      "type": "series",
+      "name": "Top seeded",
+      "shuffle": false,
+      "enabled": true,
+      "usePosterService": true,
+      "hideable": true,
+      "searchable": false,
+      "addonName": "Torrent Catalogs"
+    },
+    {
+      "id": "d1de3b0.top-anime",
+      "type": "anime",
+      "name": "Top seeded",
+      "shuffle": false,
+      "onlyOnDiscover": false,
+      "enabled": true,
+      "usePosterService": true,
+      "hideable": true,
+      "searchable": false,
+      "addonName": "Torrent Catalogs"
+    },
+    {
+      "id": "abce3b0.myanimelist_top-all-time",
+      "type": "anime",
+      "name": "Dubbed Top All Time MyAnimeList",
+      "shuffle": false,
+      "enabled": true,
+      "usePosterService": true,
+      "hideable": true,
+      "searchable": false,
+      "addonName": "Anime Catalogs"
+    },
+    {
+      "id": "abce3b0.myanimelist_top-airing",
+      "type": "anime",
+      "name": "Dubbed Top Airing MyAnimeList",
+      "shuffle": false,
+      "enabled": true,
+      "usePosterService": true,
+      "hideable": true,
+      "searchable": false,
+      "addonName": "Anime Catalogs"
+    },
+    {
+      "id": "abce3b0.myanimelist_top-series",
+      "type": "anime",
+      "name": "Dubbed Top Series MyAnimeList",
+      "shuffle": false,
+      "enabled": true,
+      "usePosterService": true,
+      "hideable": true,
+      "searchable": false,
+      "addonName": "Anime Catalogs"
+    },
+    {
+      "id": "abce3b0.myanimelist_top-movies",
+      "type": "anime",
+      "name": "Dubbed Top Movies MyAnimeList",
+      "shuffle": false,
+      "enabled": true,
+      "usePosterService": true,
+      "hideable": true,
+      "searchable": false,
+      "addonName": "Anime Catalogs"
+    },
+    {
+      "id": "abce3b0.myanimelist_popular",
+      "type": "anime",
+      "name": "Dubbed Popular MyAnimeList",
+      "shuffle": false,
+      "enabled": true,
+      "usePosterService": true,
+      "hideable": true,
+      "searchable": false,
+      "addonName": "Anime Catalogs"
+    },
+    {
+      "id": "abce3b0.myanimelist_most-favorited",
+      "type": "anime",
+      "name": "Dubbed Most Favorited MyAnimeList",
+      "shuffle": false,
+      "enabled": true,
+      "usePosterService": true,
+      "hideable": true,
+      "searchable": false,
+      "addonName": "Anime Catalogs"
+    },
+    {
+      "id": "abce3b0.anidb_popular",
+      "type": "anime",
+      "name": "Dubbed Popular AniDB",
+      "shuffle": false,
+      "enabled": true,
+      "usePosterService": true,
+      "hideable": true,
+      "searchable": false,
+      "addonName": "Anime Catalogs"
+    },
+    {
+      "id": "abce3b0.anidb_latest-started",
+      "type": "anime",
+      "name": "Dubbed Latest Started AniDB",
+      "shuffle": false,
+      "enabled": true,
+      "usePosterService": true,
+      "hideable": true,
+      "searchable": false,
+      "addonName": "Anime Catalogs"
+    },
+    {
+      "id": "abce3b0.anidb_latest-ended",
+      "type": "anime",
+      "name": "Dubbed Latest Ended AniDB",
+      "shuffle": false,
+      "enabled": true,
+      "usePosterService": true,
+      "hideable": true,
+      "searchable": false,
+      "addonName": "Anime Catalogs"
+    },
+    {
+      "id": "abce3b0.anidb_best-of-10s",
+      "type": "anime",
+      "name": "Dubbed Best of 10s AniDB",
+      "shuffle": false,
+      "enabled": true,
+      "usePosterService": true,
+      "hideable": true,
+      "searchable": false,
+      "addonName": "Anime Catalogs"
+    },
+    {
+      "id": "abce3b0.anidb_best-of-00s",
+      "type": "anime",
+      "name": "Dubbed Best of 00s AniDB",
+      "shuffle": false,
+      "enabled": true,
+      "usePosterService": true,
+      "hideable": true,
+      "searchable": false,
+      "addonName": "Anime Catalogs"
+    },
+    {
+      "id": "abce3b0.anidb_best-of-90s",
+      "type": "anime",
+      "name": "Dubbed Best of 90s AniDB",
+      "shuffle": false,
+      "enabled": true,
+      "usePosterService": true,
+      "hideable": true,
+      "searchable": false,
+      "addonName": "Anime Catalogs"
+    },
+    {
+      "id": "abce3b0.anidb_best-of-80s",
+      "type": "anime",
+      "name": "Dubbed Best of 80s AniDB",
+      "shuffle": false,
+      "enabled": true,
+      "usePosterService": true,
+      "hideable": true,
+      "searchable": false,
+      "addonName": "Anime Catalogs"
+    },
+    {
+      "id": "abce3b0.anilist_trending-now",
+      "type": "anime",
+      "name": "Dubbed Trending Now AniList",
+      "shuffle": false,
+      "enabled": true,
+      "usePosterService": true,
+      "hideable": true,
+      "searchable": false,
+      "addonName": "Anime Catalogs"
+    },
+    {
+      "id": "abce3b0.anilist_popular-this-season",
+      "type": "anime",
+      "name": "Dubbed Popular This Season AniList",
+      "shuffle": false,
+      "enabled": true,
+      "usePosterService": true,
+      "hideable": true,
+      "searchable": false,
+      "addonName": "Anime Catalogs"
+    },
+    {
+      "id": "abce3b0.anilist_upcoming-next-season",
+      "type": "anime",
+      "name": "Dubbed Upcoming Next Season AniList",
+      "shuffle": false,
+      "enabled": true,
+      "usePosterService": true,
+      "hideable": true,
+      "searchable": false,
+      "addonName": "Anime Catalogs"
+    },
+    {
+      "id": "abce3b0.anilist_all-time-popular",
+      "type": "anime",
+      "name": "Dubbed All Time Popular AniList",
+      "shuffle": false,
+      "enabled": true,
+      "usePosterService": true,
+      "hideable": true,
+      "searchable": false,
+      "addonName": "Anime Catalogs"
+    },
+    {
+      "id": "abce3b0.anilist_top-anime",
+      "type": "anime",
+      "name": "Dubbed Top Anime AniList",
+      "shuffle": false,
+      "enabled": true,
+      "usePosterService": true,
+      "hideable": true,
+      "searchable": false,
+      "addonName": "Anime Catalogs"
+    },
+    {
+      "id": "abce3b0.kitsu_top-airing",
+      "type": "anime",
+      "name": "Dubbed Top Airing Kitsu",
+      "shuffle": false,
+      "enabled": true,
+      "usePosterService": true,
+      "hideable": true,
+      "searchable": false,
+      "addonName": "Anime Catalogs"
+    },
+    {
+      "id": "abce3b0.kitsu_most-popular",
+      "type": "anime",
+      "name": "Dubbed Most Popular Kitsu",
+      "shuffle": false,
+      "enabled": true,
+      "usePosterService": true,
+      "hideable": true,
+      "searchable": false,
+      "addonName": "Anime Catalogs"
+    },
+    {
+      "id": "abce3b0.kitsu_highest-rated",
+      "type": "anime",
+      "name": "Dubbed Highest Rated Kitsu",
+      "shuffle": false,
+      "enabled": true,
+      "usePosterService": true,
+      "hideable": true,
+      "searchable": false,
+      "addonName": "Anime Catalogs"
+    },
+    {
+      "id": "abce3b0.kitsu_newest",
+      "type": "anime",
+      "name": "Dubbed Newest Kitsu",
+      "shuffle": false,
+      "enabled": true,
+      "usePosterService": true,
+      "hideable": true,
+      "searchable": false,
+      "addonName": "Anime Catalogs"
+    },
+    {
+      "id": "abce3b0.anisearch_top-all-time",
+      "type": "anime",
+      "name": "Dubbed Top All Time aniSearch",
+      "shuffle": false,
+      "enabled": true,
+      "usePosterService": true,
+      "hideable": true,
+      "searchable": false,
+      "addonName": "Anime Catalogs"
+    },
+    {
+      "id": "abce3b0.anisearch_trending",
+      "type": "anime",
+      "name": "Dubbed Trending aniSearch",
+      "shuffle": false,
+      "enabled": true,
+      "usePosterService": true,
+      "hideable": true,
+      "searchable": false,
+      "addonName": "Anime Catalogs"
+    },
+    {
+      "id": "abce3b0.anisearch_popular",
+      "type": "anime",
+      "name": "Dubbed Popular aniSearch",
+      "shuffle": false,
+      "enabled": true,
+      "usePosterService": true,
+      "hideable": true,
+      "searchable": false,
+      "addonName": "Anime Catalogs"
+    },
+    {
+      "id": "abce3b0.livechart_popular",
+      "type": "anime",
+      "name": "Dubbed Popular LiveChart.me",
+      "shuffle": false,
+      "enabled": true,
+      "usePosterService": true,
+      "hideable": true,
+      "searchable": false,
+      "addonName": "Anime Catalogs"
+    },
+    {
+      "id": "abce3b0.livechart_top-rated",
+      "type": "anime",
+      "name": "Dubbed Top Rated LiveChart.me",
+      "shuffle": false,
+      "enabled": true,
+      "usePosterService": true,
+      "hideable": true,
+      "searchable": false,
+      "addonName": "Anime Catalogs"
+    },
+    {
+      "id": "abce3b0.anime-catalogs-search",
+      "type": "anime",
+      "name": "Search",
+      "shuffle": false,
+      "enabled": true,
+      "usePosterService": true,
+      "hideable": false,
+      "searchable": false,
+      "addonName": "Anime Catalogs"
+    },
+    {
+      "id": "e20e3b0.kitsu-anime-trending",
+      "type": "anime",
+      "name": "Kitsu Trending",
+      "shuffle": false,
+      "enabled": true,
+      "usePosterService": true,
+      "hideable": true,
+      "searchable": false,
+      "addonName": "Anime Kitsu"
+    },
+    {
+      "id": "e20e3b0.kitsu-anime-airing",
+      "type": "anime",
+      "name": "Kitsu Top Airing",
+      "shuffle": false,
+      "enabled": true,
+      "usePosterService": true,
+      "hideable": true,
+      "searchable": false,
+      "addonName": "Anime Kitsu"
+    },
+    {
+      "id": "e20e3b0.kitsu-anime-popular",
+      "type": "anime",
+      "name": "Kitsu Most Popular",
+      "shuffle": false,
+      "enabled": true,
+      "usePosterService": true,
+      "hideable": true,
+      "searchable": false,
+      "addonName": "Anime Kitsu"
+    },
+    {
+      "id": "e20e3b0.kitsu-anime-rating",
+      "type": "anime",
+      "name": "Kitsu Highest Rated",
+      "shuffle": false,
+      "enabled": true,
+      "usePosterService": true,
+      "hideable": true,
+      "searchable": false,
+      "addonName": "Anime Kitsu"
+    },
+    {
+      "id": "aiostreams.merged.1785728765448",
+      "type": "anime",
+      "name": "Trending",
+      "shuffle": false,
+      "enabled": true,
+      "usePosterService": true,
+      "hideable": true,
+      "searchable": false
+    },
+    {
+      "id": "aiostreams.merged.1785728826987",
+      "type": "anime",
+      "name": "Popular",
+      "shuffle": false,
+      "enabled": true,
+      "usePosterService": true,
+      "hideable": true,
+      "searchable": false
+    },
+    {
+      "id": "aiostreams.merged.1785728853083",
+      "type": "anime",
+      "name": "Best of best",
+      "shuffle": false,
+      "enabled": true,
+      "usePosterService": true,
+      "hideable": true,
+      "searchable": false
+    },
+    {
+      "id": "aiostreams.merged.1785728879029",
+      "type": "anime",
+      "name": "Trending",
+      "shuffle": false,
+      "enabled": true,
+      "usePosterService": true,
+      "hideable": true,
+      "searchable": false
+    },
+    {
+      "id": "aiostreams.merged.1785728908064",
+      "type": "anime",
+      "name": "Top",
+      "shuffle": false,
+      "enabled": true,
+      "usePosterService": true,
+      "hideable": true,
+      "searchable": false
+    },
+    {
+      "id": "aiostreams.merged.1785729173250",
+      "type": "anime",
+      "name": "Latest",
+      "shuffle": false,
+      "enabled": true,
+      "usePosterService": true,
+      "hideable": true,
+      "searchable": false
+    },
+    {
+      "id": "e20e3b0.kitsu-anime-list",
+      "type": "anime",
+      "name": "Kitsu",
+      "shuffle": false,
+      "enabled": false,
+      "usePosterService": true,
+      "hideable": false,
+      "searchable": false,
+      "addonName": "Anime Kitsu"
+    },
+    {
+      "id": "abce3b0.notifymoe_airing-now",
+      "type": "anime",
+      "name": "Dubbed Airing Now Notify.Moe",
+      "shuffle": false,
+      "onlyOnDiscover": true,
+      "onlyOnSearch": false,
+      "enabled": true,
+      "usePosterService": true,
+      "hideable": true,
+      "searchable": false,
+      "addonName": "Anime Catalogs"
+    },
+    {
+      "id": "f86e3b0.tmdb.top",
+      "type": "movie",
+      "name": "Popular",
+      "shuffle": false,
+      "enabled": true,
+      "usePosterService": true,
+      "hideable": true,
+      "searchable": false,
+      "addonName": "The Movie Database"
+    },
+    {
+      "id": "f86e3b0.tmdb.top",
+      "type": "series",
+      "name": "Popular",
+      "shuffle": false,
+      "enabled": true,
+      "usePosterService": true,
+      "hideable": true,
+      "searchable": false,
+      "addonName": "The Movie Database"
+    },
+    {
+      "id": "f86e3b0.tmdb.year",
+      "type": "movie",
+      "name": "Year",
+      "shuffle": false,
+      "onlyOnDiscover": true,
+      "enabled": true,
+      "usePosterService": true,
+      "hideable": true,
+      "searchable": false,
+      "addonName": "The Movie Database"
+    },
+    {
+      "id": "f86e3b0.tmdb.year",
+      "type": "series",
+      "name": "Year",
+      "shuffle": false,
+      "onlyOnDiscover": true,
+      "enabled": true,
+      "usePosterService": true,
+      "hideable": true,
+      "searchable": false,
+      "addonName": "The Movie Database"
+    },
+    {
+      "id": "f86e3b0.tmdb.language",
+      "type": "movie",
+      "name": "Language",
+      "shuffle": false,
+      "enabled": true,
+      "usePosterService": true,
+      "hideable": true,
+      "searchable": false,
+      "addonName": "The Movie Database"
+    },
+    {
+      "id": "f86e3b0.tmdb.language",
+      "type": "series",
+      "name": "Language",
+      "shuffle": false,
+      "enabled": true,
+      "usePosterService": true,
+      "hideable": true,
+      "searchable": false,
+      "addonName": "The Movie Database"
+    },
+    {
+      "id": "f86e3b0.tmdb.trending",
+      "type": "movie",
+      "name": "Trending",
+      "shuffle": false,
+      "enabled": true,
+      "usePosterService": true,
+      "hideable": true,
+      "searchable": false,
+      "addonName": "The Movie Database"
+    },
+    {
+      "id": "f86e3b0.tmdb.trending",
+      "type": "series",
+      "name": "Trending",
+      "shuffle": false,
+      "enabled": true,
+      "usePosterService": true,
+      "hideable": true,
+      "searchable": false,
+      "addonName": "The Movie Database"
+    },
+    {
+      "id": "f86e3b0.tmdb.search",
+      "type": "movie",
+      "name": "Search",
+      "shuffle": false,
+      "enabled": true,
+      "usePosterService": true,
+      "hideable": false,
+      "searchable": false,
+      "addonName": "The Movie Database"
+    },
+    {
+      "id": "f86e3b0.tmdb.search",
+      "type": "series",
+      "name": "Search",
+      "shuffle": false,
+      "enabled": true,
+      "usePosterService": true,
+      "hideable": false,
+      "searchable": false,
+      "addonName": "The Movie Database"
+    },
+    {
+      "id": "9cae3b0.nfx",
+      "type": "movie",
+      "name": "Netflix",
+      "shuffle": false,
+      "enabled": true,
+      "usePosterService": true,
+      "hideable": true,
+      "searchable": false,
+      "addonName": "Streaming Catalogs"
+    },
+    {
+      "id": "9cae3b0.nfx",
+      "type": "series",
+      "name": "Netflix",
+      "shuffle": false,
+      "enabled": true,
+      "usePosterService": true,
+      "hideable": true,
+      "searchable": false,
+      "addonName": "Streaming Catalogs"
+    },
+    {
+      "id": "9cae3b0.hbm",
+      "type": "movie",
+      "name": "HBO Max",
+      "shuffle": false,
+      "enabled": true,
+      "usePosterService": true,
+      "hideable": true,
+      "searchable": false,
+      "addonName": "Streaming Catalogs"
+    },
+    {
+      "id": "9cae3b0.hbm",
+      "type": "series",
+      "name": "HBO Max",
+      "shuffle": false,
+      "enabled": true,
+      "usePosterService": true,
+      "hideable": true,
+      "searchable": false,
+      "addonName": "Streaming Catalogs"
+    },
+    {
+      "id": "9cae3b0.dnp",
+      "type": "movie",
+      "name": "Disney+",
+      "shuffle": false,
+      "enabled": true,
+      "usePosterService": true,
+      "hideable": true,
+      "searchable": false,
+      "addonName": "Streaming Catalogs"
+    },
+    {
+      "id": "9cae3b0.dnp",
+      "type": "series",
+      "name": "Disney+",
+      "shuffle": false,
+      "enabled": true,
+      "usePosterService": true,
+      "hideable": true,
+      "searchable": false,
+      "addonName": "Streaming Catalogs"
+    },
+    {
+      "id": "9cae3b0.amp",
+      "type": "movie",
+      "name": "Prime Video",
+      "shuffle": false,
+      "enabled": true,
+      "usePosterService": true,
+      "hideable": true,
+      "searchable": false,
+      "addonName": "Streaming Catalogs"
+    },
+    {
+      "id": "9cae3b0.amp",
+      "type": "series",
+      "name": "Prime Video",
+      "shuffle": false,
+      "enabled": true,
+      "usePosterService": true,
+      "hideable": true,
+      "searchable": false,
+      "addonName": "Streaming Catalogs"
+    },
+    {
+      "id": "9cae3b0.atp",
+      "type": "movie",
+      "name": "Apple TV+",
+      "shuffle": false,
+      "enabled": true,
+      "usePosterService": true,
+      "hideable": true,
+      "searchable": false,
+      "addonName": "Streaming Catalogs"
+    },
+    {
+      "id": "9cae3b0.atp",
+      "type": "series",
+      "name": "Apple TV+",
+      "shuffle": false,
+      "enabled": true,
+      "usePosterService": true,
+      "hideable": true,
+      "searchable": false,
+      "addonName": "Streaming Catalogs"
+    },
+    {
+      "id": "9cae3b0.netflix-top10-global",
+      "type": "movie",
+      "name": "Netflix Top 10 Movies (Global)",
+      "shuffle": false,
+      "enabled": true,
+      "usePosterService": true,
+      "hideable": true,
+      "searchable": false,
+      "addonName": "Streaming Catalogs"
+    },
+    {
+      "id": "9cae3b0.netflix-top10-global",
+      "type": "series",
+      "name": "Netflix Top 10 Shows (Global)",
+      "shuffle": false,
+      "enabled": true,
+      "usePosterService": true,
+      "hideable": true,
+      "searchable": false,
+      "addonName": "Streaming Catalogs"
+    },
+    {
+      "id": "75ae3b0.cartoon_network_movie",
+      "type": "movie",
+      "name": "Cartoon Network",
+      "shuffle": false,
+      "enabled": true,
+      "usePosterService": true,
+      "hideable": true,
+      "searchable": false,
+      "addonName": "CartoonNetwork"
+    },
+    {
+      "id": "75ae3b0.cartoon_network_series",
+      "type": "series",
+      "name": "Cartoon Network",
+      "shuffle": false,
+      "enabled": true,
+      "usePosterService": true,
+      "hideable": true,
+      "searchable": false,
+      "addonName": "CartoonNetwork"
+    },
+    {
+      "id": "4d3791b.torrentio-torbox-torrents",
+      "name": "TorBox Torrents",
+      "type": "other",
+      "enabled": true,
+      "shuffle": false,
+      "usePosterService": true,
+      "hideable": true,
+      "searchable": false,
+      "addonName": "Torrentio"
+    },
+    {
+      "id": "4d3791b.torrentio-torbox-usenet",
+      "name": "TorBox Usenet",
+      "type": "other",
+      "enabled": true,
+      "shuffle": false,
+      "usePosterService": true,
+      "hideable": true,
+      "searchable": false,
+      "addonName": "Torrentio"
+    },
+    {
+      "id": "4d3791b.torrentio-torbox-webdl",
+      "name": "TorBox WebDL",
+      "type": "other",
+      "enabled": true,
+      "shuffle": false,
+      "usePosterService": true,
+      "hideable": true,
+      "searchable": false,
+      "addonName": "Torrentio"
+    }
+  ],
+  "mergedCatalogs": [
+    {
+      "id": "aiostreams.merged.1785728765448",
+      "name": "Trending",
+      "type": "anime",
+      "catalogIds": [
+        "id=abce3b0.anisearch_trending&type=anime",
+        "id=abce3b0.anilist_trending-now&type=anime",
+        "id=e20e3b0.kitsu-anime-trending&type=anime"
+      ],
+      "enabled": true,
+      "deduplicationMethods": [
+        "id"
+      ],
+      "mergeMethod": "sequential"
+    },
+    {
+      "id": "aiostreams.merged.1785728826987",
+      "name": "Popular",
+      "type": "anime",
+      "catalogIds": [
+        "id=abce3b0.anilist_all-time-popular&type=anime",
+        "id=abce3b0.kitsu_most-popular&type=anime",
+        "id=abce3b0.anidb_popular&type=anime",
+        "id=abce3b0.anisearch_popular&type=anime",
+        "id=abce3b0.livechart_popular&type=anime",
+        "id=abce3b0.myanimelist_popular&type=anime",
+        "id=abce3b0.anilist_popular-this-season&type=anime",
+        "id=e20e3b0.kitsu-anime-popular&type=anime"
+      ],
+      "enabled": true,
+      "deduplicationMethods": [
+        "id"
+      ],
+      "mergeMethod": "sequential"
+    },
+    {
+      "id": "aiostreams.merged.1785728853083",
+      "name": "Best of best",
+      "type": "anime",
+      "catalogIds": [
+        "id=abce3b0.anidb_best-of-00s&type=anime",
+        "id=abce3b0.anidb_best-of-10s&type=anime",
+        "id=abce3b0.anidb_best-of-80s&type=anime",
+        "id=abce3b0.anidb_best-of-90s&type=anime"
+      ],
+      "enabled": true,
+      "deduplicationMethods": [
+        "id"
+      ],
+      "mergeMethod": "sequential"
+    },
+    {
+      "id": "aiostreams.merged.1785728879029",
+      "name": "Trending",
+      "type": "anime",
+      "catalogIds": [
+        "id=abce3b0.anisearch_trending&type=anime",
+        "id=abce3b0.anilist_trending-now&type=anime",
+        "id=e20e3b0.kitsu-anime-trending&type=anime",
+        "id=abce3b0.myanimelist_most-favorited&type=anime"
+      ],
+      "enabled": true,
+      "deduplicationMethods": [
+        "id"
+      ],
+      "mergeMethod": "sequential"
+    },
+    {
+      "id": "aiostreams.merged.1785728908064",
+      "name": "Top",
+      "type": "anime",
+      "catalogIds": [
+        "id=abce3b0.kitsu_top-airing&type=anime",
+        "id=abce3b0.myanimelist_top-airing&type=anime",
+        "id=abce3b0.anisearch_top-all-time&type=anime",
+        "id=abce3b0.myanimelist_top-all-time&type=anime",
+        "id=e20e3b0.kitsu-anime-airing&type=anime",
+        "id=abce3b0.anilist_top-anime&type=anime",
+        "id=abce3b0.myanimelist_top-movies&type=anime",
+        "id=abce3b0.livechart_top-rated&type=anime",
+        "id=abce3b0.myanimelist_top-series&type=anime"
+      ],
+      "enabled": true,
+      "deduplicationMethods": [
+        "id"
+      ],
+      "mergeMethod": "sequential"
+    },
+    {
+      "id": "aiostreams.merged.1785729173250",
+      "name": "Latest",
+      "type": "anime",
+      "catalogIds": [
+        "id=abce3b0.anidb_latest-ended&type=anime",
+        "id=abce3b0.anidb_latest-started&type=anime",
+        "id=abce3b0.kitsu_highest-rated&type=anime",
+        "id=e20e3b0.kitsu-anime-rating&type=anime",
+        "id=abce3b0.kitsu_newest&type=anime",
+        "id=abce3b0.anilist_upcoming-next-season&type=anime"
+      ],
+      "enabled": true,
+      "deduplicationMethods": [
+        "id"
+      ],
+      "mergeMethod": "sequential"
+    },
+    {
+      "id": "aiostreams.merged.1785729551423",
+      "name": "Series streaming",
+      "type": "series",
+      "catalogIds": [
+        "id=9cae3b0.amp&type=series",
+        "id=9cae3b0.hbm&type=series",
+        "id=9cae3b0.dnp&type=series",
+        "id=9cae3b0.nfx&type=series",
+        "id=9cae3b0.atp&type=series",
+        "id=9cae3b0.netflix-top10-global&type=series",
+        "id=f86e3b0.tmdb.language&type=series",
+        "id=f86e3b0.tmdb.top&type=series",
+        "id=f86e3b0.tmdb.search&type=series",
+        "id=f86e3b0.tmdb.trending&type=series"
+      ],
+      "enabled": true,
+      "deduplicationMethods": [
+        "id"
+      ],
+      "mergeMethod": "sequential"
+    },
+    {
+      "id": "aiostreams.merged.1785729580471",
+      "name": "Movies streaming",
+      "type": "movie",
+      "catalogIds": [
+        "id=9cae3b0.atp&type=movie",
+        "id=9cae3b0.dnp&type=movie",
+        "id=9cae3b0.hbm&type=movie",
+        "id=9cae3b0.nfx&type=movie",
+        "id=9cae3b0.netflix-top10-global&type=movie",
+        "id=9cae3b0.amp&type=movie",
+        "id=f86e3b0.tmdb.language&type=movie",
+        "id=f86e3b0.tmdb.top&type=movie",
+        "id=f86e3b0.tmdb.search&type=movie",
+        "id=f86e3b0.tmdb.trending&type=movie"
+      ],
+      "enabled": true,
+      "deduplicationMethods": [
+        "id"
+      ],
+      "mergeMethod": "sequential"
+    }
+  ],
+  "cacheAndPlay": {
+    "enabled": true,
+    "streamTypes": [
+      "usenet"
+    ]
+  },
+  "checkOwned": true,
+  "failover": {
+    "enabled": true,
+    "contentTypes": [
+      "usenet",
+      "debrid"
+    ],
+    "allowCrossType": true,
+    "includeExternalFailover": true
+  },
+  "serviceWrap": {
+    "enabled": false,
+    "presets": [
+      "4d3",
+      "1df"
+    ],
+    "services": [
+      "torbox"
+    ],
+    "reconfigureService": true
+  },
+  "usePosterServiceForMeta": true,
+  "usePosterRedirectApi": true
+}
