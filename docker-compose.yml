@@ -1,6 +1,27 @@
 name: aiostreams-stack
 
 services:
+  warp:
+    image: caomingjun/warp:latest
+    container_name: warp
+    restart: unless-stopped
+    cap_add:
+      - NET_ADMIN
+      - MKNOD
+      - AUDIT_WRITE
+    device_cgroup_rules:
+      - "c 10:200 rwm"
+    sysctls:
+      net.ipv6.conf.all.disable_ipv6: "0"
+      net.ipv4.conf.all.src_valid_mark: "1"
+    environment:
+      WARP_SLEEP: "2"
+      BETA_FIX_HOST_CONNECTIVITY: "1"
+    volumes:
+      - warp_data:/var/lib/cloudflare-warp
+    networks:
+      - aiostreams_network
+
   pgvector:
     image: pgvector/pgvector:0.8.2-pg18-trixie
     container_name: pgvector
@@ -154,6 +175,8 @@ services:
     container_name: AIOstreams
     restart: unless-stopped
     depends_on:
+      warp:
+        condition: service_healthy
       pgvector:
         condition: service_healthy
       phimapi-addon:
@@ -175,6 +198,10 @@ services:
     networks:
       - aiostreams_network
     environment:
+      NODE_USE_ENV_PROXY: "1"
+      HTTP_PROXY: "http://warp:1080"
+      HTTPS_PROXY: "http://warp:1080"
+      NO_PROXY: "localhost,127.0.0.1,pgvector,valkey,phimapi-addon,stremthru"
       BASE_URL: "${BASE_URL}"
       SECRET_KEY: "${AIOSTREAMS_SECRET_KEY}"
       DATABASE_URI: "${DATABASE_URI}"
@@ -208,6 +235,9 @@ services:
       PRELOAD_MIN_INTERVAL: "${PRELOAD_MIN_INTERVAL}"
       BACKGROUND_RESOURCE_REQUESTS_ENABLED: "${BACKGROUND_RESOURCE_REQUESTS_ENABLED}"
       BACKGROUND_RESOURCE_REQUEST_TIMEOUT: "${BACKGROUND_RESOURCE_REQUEST_TIMEOUT}"
+
+volumes:
+  warp_data:
 
 networks:
   aiostreams_network:
