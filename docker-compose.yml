@@ -317,6 +317,7 @@ services:
     restart: unless-stopped
     ports:
       - "9050:9050"
+      - "9051:9051"
     environment:
       PORT: "3000"
       NODE_ENV: "production"
