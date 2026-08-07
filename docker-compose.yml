@@ -282,6 +282,23 @@ services:
       BACKGROUND_RESOURCE_REQUESTS_ENABLED: "${BACKGROUND_RESOURCE_REQUESTS_ENABLED}"
       BACKGROUND_RESOURCE_REQUEST_TIMEOUT: "${BACKGROUND_RESOURCE_REQUEST_TIMEOUT}"
 
+  hawser:
+    image: ghcr.io/finsys/hawser:latest
+    container_name: hawser
+    restart: unless-stopped
+    ports:
+      - "${HAWSER_PORT:-2376}:2376"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /opt/aiostreams:/opt/hawser-stacks
+    environment:
+      TOKEN: "${HAWSER_TOKEN}"
+      STACKS_DIR: "/opt/hawser-stacks"
+      LOG_LEVEL: "info"
+    networks:
+      aiostreams_network:
+        ipv4_address: 172.32.50.10
+
 volumes:
   warp_data:
 
