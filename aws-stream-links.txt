@@ -1,2 +1,3 @@
 AIOstreams: https://aiostreams.18-140-204-81.sslip.io
 AIOmetadata: https://aiometadata.18-140-204-81.sslip.io
+TorBox Addon: https://torbox.18-140-204-81.sslip.io
