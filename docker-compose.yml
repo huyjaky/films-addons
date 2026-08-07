@@ -311,6 +311,22 @@ services:
       aiostreams_network:
         ipv4_address: 172.32.50.10
 
+  dmm:
+    build: https://github.com/debridmediamanager/debrid-media-manager.git#main
+    container_name: debrid-media-manager
+    restart: unless-stopped
+    ports:
+      - "${DMM_PORT:-5000}:3000"
+    environment:
+      PORT: "3000"
+      NODE_ENV: "production"
+      TORBOX_API_KEY: "${TORBOX_API_KEY}"
+      ONLY_LIBRARY_STREAMS: "${DMM_ONLY_LIBRARY:-true}"
+      DISABLE_COMMUNITY_SEARCH: "true"
+    networks:
+      aiostreams_network:
+        ipv4_address: 172.32.50.11
+
 volumes:
   warp_data:
 
