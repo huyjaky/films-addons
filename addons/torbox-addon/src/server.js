@@ -128,58 +128,53 @@ app.get(['/stream/:type/:id.json', '/:config/stream/:type/:id.json'], async (req
 
     const streams = [];
 
-    // 3. Search User's Torbox Cloud (/mylist)
-    if (scopeMylist) {
-      const userTorrents = await getUserTorrents(apiKey);
+    // 3 & 4. Parallel execution of User Cloud (/mylist) and Global Cache (/search)
+    const [userTorrents, globalResults] = await Promise.all([
+      scopeMylist ? getUserTorrents(apiKey) : Promise.resolve([]),
+      scopeGlobal ? searchCachedTorrents(apiKey, meta.title) : Promise.resolve([])
+    ]);
 
-      for (const torrent of userTorrents) {
-        const torrentName = torrent.name || '';
-        const files = torrent.files || [];
+    // Process User Cloud results
+    for (const torrent of userTorrents) {
+      const torrentName = torrent.name || '';
+      const files = torrent.files || [];
 
-        // Check if torrent name or any file matches regex
-        for (const file of files) {
-          const fileName = file.name || torrentName;
-          
-          if (isVideoFile(fileName) && (matcher.validate(fileName) || matcher.validate(torrentName))) {
-            const streamUrl = buildStreamPermalink(apiKey, torrent.id, file.id);
-            const quality = parseQuality(fileName);
-            const sizeStr = formatSize(file.size);
+      for (const file of files) {
+        const fileName = file.name || torrentName;
+        
+        if (isVideoFile(fileName) && (matcher.validate(fileName) || matcher.validate(torrentName))) {
+          const streamUrl = buildStreamPermalink(apiKey, torrent.id, file.id);
+          const quality = parseQuality(fileName);
+          const sizeStr = formatSize(file.size);
 
-            streams.push({
-              name: `[Torbox Cloud]`,
-              title: `${fileName}\n⚡ Cached | ${quality} | ${sizeStr}`,
-              url: streamUrl,
-              quality: quality
-            });
-          }
+          streams.push({
+            name: `[Torbox Cloud]`,
+            title: `${fileName}\n⚡ Cached | ${quality} | ${sizeStr}`,
+            url: streamUrl,
+            quality: quality
+          });
         }
       }
     }
 
-    // 4. Search Torbox Global Cache Search if enabled
-    if (scopeGlobal && streams.length === 0) {
-      const globalResults = await searchCachedTorrents(apiKey, meta.title);
+    // Process Global Cache results
+    for (const item of globalResults) {
+      const itemName = item.name || item.title || '';
+      if (matcher.validate(itemName)) {
+        const added = await addCachedTorrent(apiKey, item.magnet || item.hash);
+        if (added && added.torrent_id) {
+          const files = added.files || [];
+          const targetFile = files.find(f => isVideoFile(f.name)) || files[0];
+          if (targetFile) {
+            const streamUrl = buildStreamPermalink(apiKey, added.torrent_id, targetFile.id);
+            const quality = parseQuality(itemName);
 
-      for (const item of globalResults) {
-        const itemName = item.name || item.title || '';
-        if (matcher.validate(itemName)) {
-          // If cached item has a magnet/hash, add to account to get torrent_id and instant link
-          const added = await addCachedTorrent(apiKey, item.magnet || item.hash);
-          if (added && added.torrent_id) {
-            // Re-fetch mylist or construct stream link if files available
-            const files = added.files || [];
-            const targetFile = files.find(f => isVideoFile(f.name)) || files[0];
-            if (targetFile) {
-              const streamUrl = buildStreamPermalink(apiKey, added.torrent_id, targetFile.id);
-              const quality = parseQuality(itemName);
-
-              streams.push({
-                name: `[Torbox Global]`,
-                title: `${itemName}\n⚡ Cached | ${quality} | ${formatSize(targetFile.size || item.size)}`,
-                url: streamUrl,
-                quality: quality
-              });
-            }
+            streams.push({
+              name: `[Torbox Global]`,
+              title: `${itemName}\n⚡ Cached | ${quality} | ${formatSize(targetFile.size || item.size)}`,
+              url: streamUrl,
+              quality: quality
+            });
           }
         }
       }

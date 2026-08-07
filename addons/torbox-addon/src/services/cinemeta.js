@@ -2,11 +2,12 @@ const axios = require('axios');
 
 const CINEMETA_URL = 'https://v3-cinemeta.strem.io';
 
+// In-memory LRU-style TTL cache for metadata (TTL: 12 hours)
+const metaCache = new Map();
+const CACHE_TTL_MS = 12 * 60 * 60 * 1000;
+
 /**
  * Parses Stremio content ID (e.g., "tt0111161", "tt0944947:1:5", "tmdb:12345")
- * 
- * @param {string} id 
- * @returns {{ mainId: string, season?: number, episode?: number }}
  */
 function parseStremioId(id) {
   const parts = id.split(':');
@@ -18,16 +19,21 @@ function parseStremioId(id) {
 }
 
 /**
- * Fetches movie/series metadata from Cinemeta
- * 
- * @param {string} type - "movie" or "series"
- * @param {string} rawId - Stremio content ID (e.g. "tt0111161" or "tt0944947:1:5")
- * @returns {Promise<{ title: string, year?: number, season?: number, episode?: number, type: string }>}
+ * Fetches movie/series metadata from Cinemeta with 12h in-memory cache
  */
 async function getMediaMetadata(type, rawId) {
   const { mainId, season, episode } = parseStremioId(rawId);
+  const cacheKey = `${type}:${rawId}`;
 
-  // Default fallback if Cinemeta fails
+  // Check in-memory cache
+  if (metaCache.has(cacheKey)) {
+    const cached = metaCache.get(cacheKey);
+    if (Date.now() - cached.timestamp < CACHE_TTL_MS) {
+      return cached.data;
+    }
+    metaCache.delete(cacheKey);
+  }
+
   const result = {
     title: '',
     year: undefined,
@@ -46,12 +52,15 @@ async function getMediaMetadata(type, rawId) {
       const meta = response.data.meta;
       result.title = meta.name || '';
       if (meta.year) {
-        // year can be a string like "2011-2019" for series or 2010 for movie
         const parsedYear = parseInt(String(meta.year).split('-')[0], 10);
         if (!isNaN(parsedYear)) {
           result.year = parsedYear;
         }
       }
+    }
+
+    if (result.title) {
+      metaCache.set(cacheKey, { data: result, timestamp: Date.now() });
     }
   } catch (error) {
     console.error(`[Cinemeta] Failed to fetch metadata for ${type}/${rawId}:`, error.message);
