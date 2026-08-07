@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Torbox Cached Regex Search Addon Configuration</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
+      --card-bg: rgba(30, 41, 59, 0.7);
+      --card-border: rgba(255, 255, 255, 0.1);
+      --primary: #8b5cf6;
+      --primary-hover: #7c3aed;
+      --primary-glow: rgba(139, 92, 246, 0.35);
+      --secondary: #06b6d4;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --input-bg: rgba(15, 23, 42, 0.6);
+      --success: #10b981;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: var(--bg-gradient);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 2rem 1rem;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 650px;
+      background: var(--card-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--card-border);
+      border-radius: 24px;
+      padding: 2.5rem;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), 0 0 30px var(--primary-glow);
+      animation: fadeIn 0.6s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .badge {
+      display: inline-block;
+      background: linear-gradient(90deg, var(--primary), var(--secondary));
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 12px;
+    }
+
+    h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.5rem;
+    }
+
+    p.subtitle {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+
+    label {
+      display: block;
+      font-weight: 500;
+      margin-bottom: 0.5rem;
+      font-size: 0.9rem;
+      color: var(--text);
+    }
+
+    .hint {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 0.35rem;
+    }
+
+    .input-wrapper {
+      position: relative;
+    }
+
+    input[type="text"],
+    input[type="password"] {
+      width: 100%;
+      background: var(--input-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 0.85rem 1rem;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.95rem;
+      outline: none;
+      transition: all 0.3s ease;
+    }
+
+    input[type="text"]:focus,
+    input[type="password"]:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 12px var(--primary-glow);
+    }
+
+    .toggle-pwd {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 0.85rem;
+    }
+
+    .checkbox-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      margin-top: 0.5rem;
+    }
+
+    .checkbox-label {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+
+    .checkbox-label input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--primary);
+      cursor: pointer;
+    }
+
+    .actions {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      margin-top: 2rem;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 0.9rem 1.5rem;
+      border: none;
+      border-radius: 12px;
+      font-family: inherit;
+      font-weight: 600;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 0.5rem;
+      text-decoration: none;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%);
+      color: white;
+      box-shadow: 0 8px 20px var(--primary-glow);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 25px var(--primary-glow);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text);
+      border: 1px solid var(--card-border);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    .manifest-box {
+      margin-top: 1.5rem;
+      background: var(--input-bg);
+      border: 1px dashed var(--card-border);
+      border-radius: 12px;
+      padding: 1rem;
+      word-break: break-all;
+      font-family: monospace;
+      font-size: 0.85rem;
+      color: var(--secondary);
+      position: relative;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: var(--success);
+      color: white;
+      padding: 12px 24px;
+      border-radius: 12px;
+      font-weight: 500;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+      display: none;
+      animation: slideUp 0.3s ease-out;
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(100%); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="badge">Stremio & Nuvio Addon</div>
+      <h1>Torbox Cached Regex Search</h1>
+      <p class="subtitle">Search and stream title-matched cached torrents directly from your Torbox account with zero delay.</p>
+    </div>
+
+    <form id="configForm">
+      <div class="form-group">
+        <label for="apiKey">Torbox API Token *</label>
+        <div class="input-wrapper">
+          <input type="password" id="apiKey" placeholder="Paste your Torbox API Key here..." required />
+          <button type="button" class="toggle-pwd" id="togglePwdBtn">Show</button>
+        </div>
+        <p class="hint">Find your API Token in Torbox Account Settings -> API Key.</p>
+      </div>
+
+      <div class="form-group">
+        <label for="includeRegex">Custom Include Regex (Optional)</label>
+        <input type="text" id="includeRegex" placeholder="e.g. 4K|1080p|2160p" />
+        <p class="hint">Only include streams matching this Regex pattern.</p>
+      </div>
+
+      <div class="form-group">
+        <label for="excludeRegex">Custom Exclude Regex (Optional)</label>
+        <input type="text" id="excludeRegex" placeholder="e.g. CAM|TS|HDCAM|SAMPLE" />
+        <p class="hint">Filter out streams matching this Regex pattern.</p>
+      </div>
+
+      <div class="form-group">
+        <label>Search Scopes</label>
+        <div class="checkbox-group">
+          <label class="checkbox-label">
+            <input type="checkbox" id="scopeMylist" checked />
+            Search User Torbox Cloud (mylist)
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" id="scopeGlobal" checked />
+            Search Torbox Global Cache (checkcached)
+          </label>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button type="submit" class="btn btn-primary" id="installBtn">
+          ⚡ Install to Stremio
+        </button>
+        <button type="button" class="btn btn-secondary" id="copyBtn">
+          📋 Copy Manifest Link (for Nuvio / Web)
+        </button>
+      </div>
+    </form>
+
+    <div class="manifest-box" id="manifestPreview" style="display: none;"></div>
+  </div>
+
+  <div class="toast" id="toast">Copied to clipboard!</div>
+
+  <script>
+    const form = document.getElementById('configForm');
+    const apiKeyInput = document.getElementById('apiKey');
+    const togglePwdBtn = document.getElementById('togglePwdBtn');
+    const includeRegexInput = document.getElementById('includeRegex');
+    const excludeRegexInput = document.getElementById('excludeRegex');
+    const scopeMylistInput = document.getElementById('scopeMylist');
+    const scopeGlobalInput = document.getElementById('scopeGlobal');
+    const manifestPreview = document.getElementById('manifestPreview');
+    const toast = document.getElementById('toast');
+
+    // Toggle password visibility
+    togglePwdBtn.addEventListener('click', () => {
+      if (apiKeyInput.type === 'password') {
+        apiKeyInput.type = 'text';
+        togglePwdBtn.textContent = 'Hide';
+      } else {
+        apiKeyInput.type = 'password';
+        togglePwdBtn.textContent = 'Show';
+      }
+    });
+
+    function showToast(msg) {
+      toast.textContent = msg;
+      toast.style.display = 'block';
+      setTimeout(() => {
+        toast.style.display = 'none';
+      }, 3000);
+    }
+
+    function buildConfigObj() {
+      return {
+        apiKey: apiKeyInput.value.trim(),
+        includeRegex: includeRegexInput.value.trim(),
+        excludeRegex: excludeRegexInput.value.trim(),
+        scopeMylist: scopeMylistInput.checked,
+        scopeGlobal: scopeGlobalInput.checked
+      };
+    }
+
+    function getManifestUrl() {
+      const config = buildConfigObj();
+      if (!config.apiKey) return null;
+      const encoded = btoa(JSON.stringify(config));
+      const origin = window.location.origin;
+      return `${origin}/${encoded}/manifest.json`;
+    }
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const url = getManifestUrl();
+      if (!url) {
+        alert('Please enter your Torbox API Token.');
+        return;
+      }
+      // Convert https:// or http:// to stremio:// protocol link
+      const stremioUrl = url.replace(/^https?:\/\//, 'stremio://');
+      window.location.href = stremioUrl;
+    });
+
+    document.getElementById('copyBtn').addEventListener('click', () => {
+      const url = getManifestUrl();
+      if (!url) {
+        alert('Please enter your Torbox API Token first.');
+        return;
+      }
+      navigator.clipboard.writeText(url).then(() => {
+        showToast('Manifest URL copied for Nuvio!');
+        manifestPreview.style.display = 'block';
+        manifestPreview.textContent = url;
+      });
+    });
+  </script>
+</body>
+</html>

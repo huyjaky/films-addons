@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PhimAPI - Stremio Addon Tiếng Việt</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --bg-dark: #090a0f;
+      --bg-card: rgba(255, 255, 255, 0.03);
+      --border-card: rgba(255, 255, 255, 0.08);
+      --text-main: #f3f4f6;
+      --text-mute: #9ca3af;
+      --primary: #8b5cf6;
+      --primary-glow: rgba(139, 92, 246, 0.4);
+      --secondary: #06b6d4;
+      --secondary-glow: rgba(6, 182, 212, 0.4);
+      --accent: #ec4899;
+      --transition-speed: 0.3s;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* Glow Orbs background */
+    .glow-orb-1 {
+      position: absolute;
+      top: -10%;
+      left: -10%;
+      width: 50vw;
+      height: 50vw;
+      border-radius: 50%;
+      background: radial-gradient(circle, var(--primary-glow) 0%, transparent 70%);
+      z-index: -1;
+      filter: blur(80px);
+      pointer-events: none;
+    }
+
+    .glow-orb-2 {
+      position: absolute;
+      bottom: -10%;
+      right: -10%;
+      width: 50vw;
+      height: 50vw;
+      border-radius: 50%;
+      background: radial-gradient(circle, var(--secondary-glow) 0%, transparent 70%);
+      z-index: -1;
+      filter: blur(80px);
+      pointer-events: none;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 2rem;
+      border-bottom: 1px solid var(--border-card);
+      margin-bottom: 3rem;
+    }
+
+    .logo-container {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .logo-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.25rem;
+      box-shadow: 0 0 20px var(--primary-glow);
+    }
+
+    .logo-text {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.5rem;
+      font-weight: 800;
+      background: linear-gradient(to right, #ffffff, #a78bfa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-section {
+      text-align: center;
+      padding: 3rem 0;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 3rem;
+      font-weight: 800;
+      line-height: 1.2;
+      margin-bottom: 1.5rem;
+      background: linear-gradient(135deg, #ffffff 30%, #c084fc 70%, #22d3ee);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: fadeIn 1s ease-out;
+    }
+
+    .hero-desc {
+      font-size: 1.125rem;
+      color: var(--text-mute);
+      margin-bottom: 2.5rem;
+      line-height: 1.6;
+    }
+
+    .btn-group {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin-bottom: 4rem;
+    }
+
+    .btn {
+      padding: 0.85rem 2rem;
+      border-radius: 12px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all var(--transition-speed) cubic-bezier(0.4, 0, 0.2, 1);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      border: none;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), #7c3aed);
+      color: white;
+      box-shadow: 0 4px 20px var(--primary-glow);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 25px rgba(139, 92, 246, 0.6);
+    }
+
+    .btn-secondary {
+      background: var(--bg-card);
+      color: var(--text-main);
+      border: 1px solid var(--border-card);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.2);
+      transform: translateY(-2px);
+    }
+
+    /* Main Grid */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 2rem;
+      margin-bottom: 5rem;
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: 20px;
+      padding: 2rem;
+      backdrop-filter: blur(12px);
+      transition: all var(--transition-speed) ease;
+    }
+
+    .card:hover {
+      border-color: rgba(139, 92, 246, 0.3);
+      transform: translateY(-4px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    .card-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: white;
+    }
+
+    .card-title svg {
+      color: var(--secondary);
+    }
+
+    .card-body {
+      color: var(--text-mute);
+      line-height: 1.6;
+      font-size: 0.95rem;
+    }
+
+    .card-body ol {
+      padding-left: 1.25rem;
+      margin-top: 0.75rem;
+    }
+
+    .card-body li {
+      margin-bottom: 0.5rem;
+    }
+
+    /* Demo Search Container */
+    .search-demo-section {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border-card);
+      border-radius: 24px;
+      padding: 3rem;
+      margin-bottom: 5rem;
+      backdrop-filter: blur(16px);
+    }
+
+    .section-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.75rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      text-align: center;
+    }
+
+    .section-subtitle {
+      color: var(--text-mute);
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .search-bar-container {
+      display: flex;
+      max-width: 600px;
+      margin: 0 auto 3rem auto;
+      gap: 0.75rem;
+    }
+
+    .search-input {
+      flex: 1;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--border-card);
+      border-radius: 12px;
+      padding: 0.85rem 1.25rem;
+      color: white;
+      font-family: inherit;
+      font-size: 1rem;
+      transition: all var(--transition-speed) ease;
+    }
+
+    .search-input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 15px rgba(139, 92, 246, 0.2);
+    }
+
+    .results-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .movie-card {
+      background: rgba(0, 0, 0, 0.2);
+      border: 1px solid var(--border-card);
+      border-radius: 12px;
+      overflow: hidden;
+      transition: all var(--transition-speed) ease;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .movie-card:hover {
+      transform: scale(1.03);
+      border-color: var(--primary);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+    }
+
+    .movie-poster-wrapper {
+      position: relative;
+      width: 100%;
+      padding-top: 145%; /* 3:4.35 aspect ratio for film posters */
+      background-color: rgba(255, 255, 255, 0.02);
+      overflow: hidden;
+    }
+
+    .movie-poster {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform var(--transition-speed) ease;
+    }
+
+    .movie-card:hover .movie-poster {
+      transform: scale(1.05);
+    }
+
+    .movie-info {
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      flex-grow: 1;
+    }
+
+    .movie-name {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: white;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
+    }
+
+    .movie-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      color: var(--text-mute);
+    }
+
+    .badge {
+      background: rgba(139, 92, 246, 0.15);
+      color: #c084fc;
+      padding: 0.1rem 0.4rem;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .status-text {
+      text-align: center;
+      color: var(--text-mute);
+      grid-column: 1 / -1;
+      padding: 3rem 0;
+      font-size: 1.1rem;
+    }
+
+    footer {
+      text-align: center;
+      padding: 3rem 0;
+      border-top: 1px solid var(--border-card);
+      color: var(--text-mute);
+      font-size: 0.9rem;
+    }
+
+    footer a {
+      color: var(--primary);
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+
+    /* Modal styles */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(10px);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+    }
+
+    .modal.active {
+      display: flex;
+    }
+
+    .modal-content {
+      background: #11131c;
+      border: 1px solid var(--border-card);
+      border-radius: 24px;
+      width: 100%;
+      max-width: 600px;
+      padding: 2.5rem;
+      position: relative;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+      animation: modalSlide 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      background: none;
+      border: none;
+      color: var(--text-mute);
+      cursor: pointer;
+      font-size: 1.5rem;
+    }
+
+    .modal-close:hover {
+      color: white;
+    }
+
+    .copy-box {
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid var(--border-card);
+      border-radius: 12px;
+      padding: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: 1.5rem 0;
+    }
+
+    .copy-text {
+      font-family: monospace;
+      font-size: 0.9rem;
+      overflow-x: auto;
+      white-space: nowrap;
+      margin-right: 1rem;
+      color: var(--secondary);
+    }
+
+    /* Toast Notification */
+    .toast {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: white;
+      padding: 1rem 1.5rem;
+      border-radius: 12px;
+      font-weight: 600;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+      transform: translateY(150%);
+      transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      z-index: 200;
+    }
+
+    .toast.active {
+      transform: translateY(0);
+    }
+
+    /* Keyframes */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes modalSlide {
+      from { transform: translateY(30px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    @media (max-width: 768px) {
+      h1 { font-size: 2.25rem; }
+      .search-bar-container { flex-direction: column; }
+      .btn { width: 100%; justify-content: center; }
+      .container { padding: 1rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="glow-orb-1"></div>
+  <div class="glow-orb-2"></div>
+
+  <div class="container">
+    <!-- Header -->
+    <header>
+      <div class="logo-container">
+        <div class="logo-icon">P</div>
+        <span class="logo-text">PhimAPI Việt Addon</span>
+      </div>
+      <div>
+        <a href="https://stremio.com" target="_blank" class="btn btn-secondary" style="padding: 0.5rem 1rem; font-size: 0.9rem;">
+          Stremio.com
+        </a>
+      </div>
+    </header>
+
+    <!-- Hero -->
+    <section class="hero-section">
+      <h1>Khám Phá Phim Tiếng Việt<br>Ngay Trên Stremio</h1>
+      <p class="hero-desc">
+        Xem hàng ngàn bộ phim lẻ, phim bộ vietsub và thuyết minh từ nguồn dữ liệu PhimAPI tiếng Việt chất lượng cao. Tìm kiếm nhanh chóng, stream trực tiếp mượt mà.
+      </p>
+      
+      <div class="btn-group">
+        <button id="btn-install" class="btn btn-primary">
+          <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path>
+          </svg>
+          Cài đặt Addon
+        </button>
+        <button id="btn-copy-url" class="btn btn-secondary">
+          Sao chép URL Manifest
+        </button>
+      </div>
+    </section>
+
+    <!-- Details Grid -->
+    <section class="grid">
+      <div class="card">
+        <div class="card-title">
+          <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+          </svg>
+          Tìm kiếm bằng tiếng Việt
+        </div>
+        <div class="card-body">
+          Tìm kiếm thông minh các tựa phim bằng cả tiếng Việt (có dấu hoặc không dấu) và tên tiếng Anh gốc. Kết quả trả về ngay lập tức với đầy đủ poster và thông tin.
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">
+          <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+          </svg>
+          Danh mục đa dạng
+        </div>
+        <div class="card-body">
+          Tích hợp hai danh mục Catalog chính ngay trong giao diện Stremio:
+          <ol>
+            <li><strong>Phim lẻ PhimAPI</strong>: Các phim điện ảnh cập nhật mới nhất.</li>
+            <li><strong>Phim bộ PhimAPI</strong>: Các bộ phim dài tập cập nhật liên tục.</li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">
+          <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          Nhiều Server & Phụ đề
+        </div>
+        <div class="card-body">
+          Hỗ trợ luồng stream video định dạng M3U8 tốc độ cao. Cung cấp đầy đủ các tùy chọn thuyết minh, vietsub từ nhiều server khác nhau để mang lại trải nghiệm xem phim tốt nhất.
+        </div>
+      </div>
+    </section>
+
+    <!-- Demo Search -->
+    <section class="search-demo-section">
+      <div class="section-title">Thử nghiệm Tìm kiếm</div>
+      <p class="section-subtitle">Kiểm tra nhanh xem phim hoạt động như thế nào ngay trước khi cài đặt</p>
+      
+      <div class="search-bar-container">
+        <input type="text" id="search-input" class="search-input" placeholder="Nhập tên phim tiếng Việt (ví dụ: avengers, loki, ...)" value="avengers">
+        <button id="btn-search" class="btn btn-primary" style="padding: 0 1.5rem;">Tìm kiếm</button>
+      </div>
+
+      <div id="results-container" class="results-grid">
+        <div class="status-text">Đang tải kết quả mẫu...</div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+      <p>Bản quyền thuộc về cộng đồng Stremio Việt Nam. Sử dụng dữ liệu mở từ <a href="https://phimapi.com" target="_blank">PhimAPI.com</a>.</p>
+    </footer>
+  </div>
+
+  <!-- Instruction Modal -->
+  <div id="modal-inst" class="modal">
+    <div class="modal-content">
+      <button class="modal-close" id="modal-close">&times;</button>
+      <h2 style="margin-bottom: 1rem; font-family: 'Outfit';">Cách cài đặt trên Stremio</h2>
+      <p style="color: var(--text-mute); margin-bottom: 1rem; line-height: 1.5;">
+        Vui lòng làm theo hướng dẫn dưới đây để thêm addon này vào ứng dụng Stremio của bạn:
+      </p>
+      <ol style="color: var(--text-mute); padding-left: 1.2rem; margin-bottom: 1.5rem; line-height: 1.6;">
+        <li>Nhấn vào nút <strong>"Cài đặt Addon"</strong> để mở trực tiếp trong app Stremio.</li>
+        <li>Hoặc copy URL Manifest ở hộp dưới đây.</li>
+        <li>Mở Stremio, đi tới phần <strong>Addons</strong>, dán URL vào thanh tìm kiếm rồi ấn <strong>Install</strong>.</li>
+      </ol>
+      <div class="copy-box">
+        <span class="copy-text" id="manifest-url-text">Loading...</span>
+        <button id="btn-copy-modal" class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.85rem;">Copy</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="toast">Đã sao chép vào bộ nhớ tạm!</div>
+
+  <script>
+    // Calculate Manifest URL based on current host
+    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    const protocol = window.location.protocol;
+    const host = window.location.host;
+    const manifestUrl = `${protocol}//${host}/manifest.json`;
+    const stremioUrl = `stremio://${host}/manifest.json`;
+
+    document.getElementById('manifest-url-text').innerText = manifestUrl;
+
+    // Toast show helper
+    function showToast(message) {
+      const toast = document.getElementById('toast');
+      toast.innerText = message || "Đã sao chép!";
+      toast.classList.add('active');
+      setTimeout(() => {
+        toast.classList.remove('active');
+      }, 2500);
+    }
+
+    // Modal Control
+    const modal = document.getElementById('modal-inst');
+    const modalClose = document.getElementById('modal-close');
+
+    function openModal() {
+      modal.classList.add('active');
+    }
+
+    function closeModal() {
+      modal.classList.remove('active');
+    }
+
+    modalClose.onclick = closeModal;
+    window.onclick = function(event) {
+      if (event.target === modal) {
+        closeModal();
+      }
+    }
+
+    // Install buttons
+    document.getElementById('btn-install').onclick = function() {
+      window.location.href = stremioUrl;
+    };
+
+    document.getElementById('btn-copy-url').onclick = function() {
+      navigator.clipboard.writeText(manifestUrl).then(() => {
+        showToast("Đã sao chép URL Manifest!");
+      }).catch(() => {
+        openModal();
+      });
+    };
+
+    document.getElementById('btn-copy-modal').onclick = function() {
+      navigator.clipboard.writeText(manifestUrl).then(() => {
+        showToast("Đã sao chép URL Manifest!");
+        closeModal();
+      });
+    };
+
+    // Live search function
+    async function performSearch(keyword) {
+      const container = document.getElementById('results-container');
+      container.innerHTML = '<div class="status-text">Đang tìm kiếm phim...</div>';
+      
+      if (!keyword || keyword.trim() === '') {
+        container.innerHTML = '<div class="status-text">Vui lòng nhập từ khóa tìm kiếm.</div>';
+        return;
+      }
+
+      try {
+        // Query the local search catalog endpoint directly to test the integration!
+        // Stremio search catalog pattern is: /catalog/{type}/{id}/search={query}.json
+        // Let's call it for 'movie' type
+        const res = await fetch(`/catalog/movie/phimapi-movies/search=${encodeURIComponent(keyword)}.json`);
+        if (!res.ok) throw new Error("Thất bại khi kết nối API Addon");
+        
+        const data = await res.json();
+        
+        if (!data || !data.metas || data.metas.length === 0) {
+          container.innerHTML = `<div class="status-text">Không tìm thấy phim nào khớp với từ khóa "${keyword}".</div>`;
+          return;
+        }
+
+        container.innerHTML = '';
+        data.metas.slice(0, 12).forEach(movie => {
+          const card = document.createElement('div');
+          card.className = 'movie-card';
+          
+          // Generate type badge
+          const typeLabel = movie.type === 'series' ? 'Phim bộ' : 'Phim lẻ';
+          
+          card.innerHTML = `
+            <div class="movie-poster-wrapper">
+              <img class="movie-poster" src="${movie.poster || 'https://images.unsplash.com/photo-1485846234645-a62644f84728?q=80&w=256'}" alt="${movie.name}">
+            </div>
+            <div class="movie-info">
+              <div class="movie-name" title="${movie.name}">${movie.name}</div>
+              <div class="movie-meta">
+                <span class="badge">${typeLabel}</span>
+                <span>${movie.releaseInfo || ''}</span>
+              </div>
+            </div>
+          `;
+          
+          // Click handler to show details or notify
+          card.onclick = () => {
+            showToast(`Phim: ${movie.name}. Cài addon trên Stremio để xem!`);
+          };
+          
+          container.appendChild(card);
+        });
+
+      } catch (err) {
+        console.error(err);
+        container.innerHTML = '<div class="status-text" style="color: var(--accent);">Lỗi: Không thể tải kết quả. Đảm bảo rằng addon server đang hoạt động.</div>';
+      }
+    }
+
+    // Bind search event
+    document.getElementById('btn-search').onclick = () => {
+      const val = document.getElementById('search-input').value;
+      performSearch(val);
+    };
+
+    document.getElementById('search-input').onkeypress = (e) => {
+      if (e.key === 'Enter') {
+        performSearch(e.target.value);
+      }
+    };
+
+    // Initial load
+    performSearch('avengers');
+  </script>
+</body>
+</html>

@@ -1,0 +1,11 @@
+version: '3.8'
+
+services:
+  stremio-addon:
+    build: .
+    container_name: phimapi-addon
+    ports:
+      - "${PORT:-7000}:7000"
+    env_file:
+      - .env
+    restart: unless-stopped

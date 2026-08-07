@@ -311,6 +311,19 @@ services:
       aiostreams_network:
         ipv4_address: 172.32.50.10
 
+  torbox-addon:
+    image: torbox-stremio-addon:latest
+    container_name: torbox-addon
+    restart: unless-stopped
+    ports:
+      - "${TORBOX_ADDON_PORT:-7070}:7000"
+    environment:
+      PORT: "7000"
+      NODE_ENV: "production"
+    networks:
+      aiostreams_network:
+        ipv4_address: 172.32.50.13
+
 volumes:
   warp_data:
 
