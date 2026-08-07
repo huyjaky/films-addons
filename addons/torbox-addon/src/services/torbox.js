@@ -5,12 +5,9 @@ const TORBOX_SEARCH_BASE = 'https://search-api.torbox.app';
 
 /**
  * Fetches user's torrent list from Torbox Cloud (/mylist)
- * 
- * @param {string} apiKey 
- * @returns {Promise<Array>} Array of user's torrent items
  */
 async function getUserTorrents(apiKey) {
-  if (!apiKey) return [];
+  if (!apiKey) return { torrents: [], authError: false };
 
   try {
     const response = await axios.get(`${TORBOX_API_BASE}/torrents/mylist?bypass_cache=true`, {
@@ -20,22 +17,26 @@ async function getUserTorrents(apiKey) {
       timeout: 10000
     });
 
+    if (response.data && response.data.error === 'AUTH_ERROR') {
+      console.error('[Torbox] API Token Auth Error:', response.data.detail);
+      return { torrents: [], authError: true };
+    }
+
     if (response.data && response.data.success && Array.isArray(response.data.data)) {
-      return response.data.data;
+      return { torrents: response.data.data, authError: false };
     }
   } catch (error) {
+    if (error.response?.data?.error === 'AUTH_ERROR' || error.response?.status === 401) {
+      return { torrents: [], authError: true };
+    }
     console.error('[Torbox] Error fetching mylist:', error.response?.data || error.message);
   }
 
-  return [];
+  return { torrents: [], authError: false };
 }
 
 /**
  * Checks cache status of array of torrent hashes
- * 
- * @param {string} apiKey 
- * @param {Array<string>} hashes 
- * @returns {Promise<Object>} Map or object of cached hashes
  */
 async function checkCachedHashes(apiKey, hashes) {
   if (!apiKey || !hashes || hashes.length === 0) return {};
@@ -63,10 +64,6 @@ async function checkCachedHashes(apiKey, hashes) {
 
 /**
  * Searches Torbox Cached Search API
- * 
- * @param {string} apiKey 
- * @param {string} query 
- * @returns {Promise<Array>} Array of cached search results
  */
 async function searchCachedTorrents(apiKey, query) {
   if (!apiKey || !query) return [];
@@ -84,11 +81,9 @@ async function searchCachedTorrents(apiKey, query) {
     });
 
     if (response.data && Array.isArray(response.data)) {
-      // Filter results to only cached items
       return response.data.filter(item => item.cached === true || item.is_cached === true);
     }
   } catch (error) {
-    // Torbox search API may fail or rate limit, log silently
     console.warn('[Torbox] Search API warning:', error.response?.status || error.message);
   }
 

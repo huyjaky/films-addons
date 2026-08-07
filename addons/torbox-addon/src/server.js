@@ -129,10 +129,26 @@ app.get(['/stream/:type/:id.json', '/:config/stream/:type/:id.json'], async (req
     const streams = [];
 
     // 3 & 4. Parallel execution of User Cloud (/mylist) and Global Cache (/search)
-    const [userTorrents, globalResults] = await Promise.all([
-      scopeMylist ? getUserTorrents(apiKey) : Promise.resolve([]),
+    const [cloudRes, globalResults] = await Promise.all([
+      scopeMylist ? getUserTorrents(apiKey) : Promise.resolve({ torrents: [], authError: false }),
       scopeGlobal ? searchCachedTorrents(apiKey, meta.title) : Promise.resolve([])
     ]);
+
+    if (cloudRes.authError) {
+      const host = req.get('host') || `localhost:${PORT}`;
+      const protocol = req.protocol || 'http';
+      return res.json({
+        streams: [
+          {
+            name: '[Torbox Addon]',
+            title: '⚠️ TorBox API Token Error: Invalid or Expired API Key!\nPlease update API Key in Addon Settings.',
+            externalUrl: `${protocol}://${host}/configure`
+          }
+        ]
+      });
+    }
+
+    const userTorrents = cloudRes.torrents || [];
 
     // Process User Cloud results
     for (const torrent of userTorrents) {
