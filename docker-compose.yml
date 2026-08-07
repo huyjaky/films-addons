@@ -311,40 +311,6 @@ services:
       aiostreams_network:
         ipv4_address: 172.32.50.10
 
-  dmm-tor:
-    image: debridmediamanager/tor:latest
-    container_name: dmm-tor
-    restart: unless-stopped
-    ports:
-      - "9050:9050"
-      - "9051:9051"
-    networks:
-      aiostreams_network:
-        ipv4_address: 172.32.50.11
-
-  dmm:
-    image: debridmediamanager/tor:latest
-    container_name: debrid-media-manager
-    restart: unless-stopped
-    depends_on:
-      valkey:
-        condition: service_healthy
-      dmm-tor:
-        condition: service_started
-    ports:
-      - "${DMM_PORT:-5000}:3000"
-    environment:
-      PORT: "3000"
-      NODE_ENV: "production"
-      REDIS_URL: "redis://:${VALKEY_PASSWORD}@valkey:6379/3"
-      TOR_PROXY_URL: "socks5://dmm-tor:9050"
-      TORBOX_API_KEY: "${TORBOX_API_KEY}"
-      ONLY_LIBRARY_STREAMS: "${DMM_ONLY_LIBRARY:-true}"
-      DISABLE_COMMUNITY_SEARCH: "true"
-    networks:
-      aiostreams_network:
-        ipv4_address: 172.32.50.12
-
 volumes:
   warp_data:
 
