@@ -202,6 +202,8 @@ services:
     networks:
       aiostreams_network:
         ipv4_address: 172.32.50.3
+    volumes:
+      - /home/duckq1u/Documents/docker-volumes/aiostreams-volumes/aiometadata:/app/addon/data
     environment:
       PORT: "3232"
       HOST_NAME: "${AIOMETADATA_HOST_NAME}"
@@ -210,6 +212,14 @@ services:
       DATABASE_URI: "${AIOMETADATA_DATABASE_URI}"
       REDIS_URL: "${AIOMETADATA_REDIS_URL}"
       TMDB_API_KEY: "${AIOMETADATA_TMDB_API_KEY}"
+      ENABLE_BUILTIN_POSTER_CACHE: "${ENABLE_BUILTIN_POSTER_CACHE}"
+      POSTER_CACHE_BACKGROUNDS: "${POSTER_CACHE_BACKGROUNDS}"
+      POSTER_CACHE_LOGOS: "${POSTER_CACHE_LOGOS}"
+      POSTER_CACHE_PROCESSED_IMAGES: "${POSTER_CACHE_PROCESSED_IMAGES}"
+      POSTER_CACHE_MAX_SIZE: "${POSTER_CACHE_MAX_SIZE}"
+      POSTER_CACHE_MEMORY_SIZE: "${POSTER_CACHE_MEMORY_SIZE}"
+      PREFER_SMALLER_LOGOS_TMDB: "${PREFER_SMALLER_LOGOS_TMDB}"
+      PREFER_SMALLER_LANDSCAPE_TMDB: "${PREFER_SMALLER_LANDSCAPE_TMDB}"
       HTTP_PROXY: http://warp:1080
       HTTPS_PROXY: http://warp:1080
       NO_PROXY: localhost,127.0.0.1,valkey,pgvector
