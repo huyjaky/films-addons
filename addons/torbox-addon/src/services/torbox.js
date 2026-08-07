@@ -80,8 +80,12 @@ async function searchCachedTorrents(apiKey, query) {
       timeout: 10000
     });
 
-    if (response.data && Array.isArray(response.data)) {
-      return response.data.filter(item => item.cached === true || item.is_cached === true);
+    const items = Array.isArray(response.data) 
+      ? response.data 
+      : (Array.isArray(response.data?.data) ? response.data.data : []);
+
+    if (items.length > 0) {
+      return items.filter(item => item.cached === true || item.is_cached === true || item.cached === 'true');
     }
   } catch (error) {
     console.warn('[Torbox] Search API warning:', error.response?.status || error.message);

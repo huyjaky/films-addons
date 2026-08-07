@@ -173,7 +173,9 @@ app.get(['/stream/:type/:id.json', '/:config/stream/:type/:id.json'], async (req
       }
     }
 
-    // Process Global Cache results
+    // Process Global Cache results (deduplicating against existing Cloud streams)
+    const existingStreamUrls = new Set(streams.map(s => s.url));
+
     for (const item of globalResults) {
       const itemName = item.name || item.title || '';
       if (matcher.validate(itemName)) {
@@ -183,14 +185,17 @@ app.get(['/stream/:type/:id.json', '/:config/stream/:type/:id.json'], async (req
           const targetFile = files.find(f => isVideoFile(f.name)) || files[0];
           if (targetFile) {
             const streamUrl = buildStreamPermalink(apiKey, added.torrent_id, targetFile.id);
-            const quality = parseQuality(itemName);
+            if (!existingStreamUrls.has(streamUrl)) {
+              existingStreamUrls.add(streamUrl);
+              const quality = parseQuality(itemName);
 
-            streams.push({
-              name: `[Torbox Global]`,
-              title: `${itemName}\n⚡ Cached | ${quality} | ${formatSize(targetFile.size || item.size)}`,
-              url: streamUrl,
-              quality: quality
-            });
+              streams.push({
+                name: `[Torbox Global]`,
+                title: `${itemName}\n⚡ Cached | ${quality} | ${formatSize(targetFile.size || item.size)}`,
+                url: streamUrl,
+                quality: quality
+              });
+            }
           }
         }
       }
