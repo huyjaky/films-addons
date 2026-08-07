@@ -312,7 +312,7 @@ services:
         ipv4_address: 172.32.50.10
 
   dmm:
-    build: https://github.com/debridmediamanager/debrid-media-manager.git#main
+    image: debridmediamanager/tor:latest
     container_name: debrid-media-manager
     restart: unless-stopped
     ports:
