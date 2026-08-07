@@ -316,7 +316,7 @@ services:
     container_name: debrid-media-manager
     restart: unless-stopped
     ports:
-      - "${DMM_PORT:-5000}:3000"
+      - "9050:9050"
     environment:
       PORT: "3000"
       NODE_ENV: "production"
