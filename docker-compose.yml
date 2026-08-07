@@ -258,7 +258,7 @@ services:
       NODE_USE_ENV_PROXY: "1"
       HTTP_PROXY: "http://warp:1080"
       HTTPS_PROXY: "http://warp:1080"
-      NO_PROXY: "localhost,127.0.0.1,pgvector,valkey,phimapi-addon,stremthru,torbox.app,.torbox.app"
+      NO_PROXY: "localhost,127.0.0.1,pgvector,valkey,phimapi-addon,stremthru,torbox-addon,torbox.app,.torbox.app"
       BASE_URL: "${BASE_URL}"
       SECRET_KEY: "${AIOSTREAMS_SECRET_KEY}"
       DATABASE_URI: "${DATABASE_URI}"
