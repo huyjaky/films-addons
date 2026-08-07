@@ -1,0 +1,23 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": ["ssm:GetParameter"],
+      "Resource": [
+        "arn:aws:ssm:ap-southeast-1:266735814883:parameter/aiostreams/prod/env",
+        "arn:aws:ssm:ap-southeast-1:266735814883:parameter/aiostreams/prod/compose"
+      ]
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "ecr:GetAuthorizationToken",
+        "ecr:BatchCheckLayerAvailability",
+        "ecr:GetDownloadUrlForLayer",
+        "ecr:BatchGetImage"
+      ],
+      "Resource": "*"
+    }
+  ]
+}

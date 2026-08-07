@@ -20,7 +20,8 @@ services:
     volumes:
       - warp_data:/var/lib/cloudflare-warp
     networks:
-      - aiostreams_network
+      aiostreams_network:
+        ipv4_address: 172.32.50.4
 
   pgvector:
     image: pgvector/pgvector:0.8.2-pg18-trixie
@@ -35,7 +36,8 @@ services:
       retries: 10
       start_period: 20s
     networks:
-      - aiostreams_network
+      aiostreams_network:
+        ipv4_address: 172.32.50.6
     environment:
       POSTGRES_USER: "${POSTGRES_USER}"
       POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
@@ -53,23 +55,27 @@ services:
       - /bin/sh
       - -ec
       - |
-        if ! PGPASSWORD="$${POSTGRES_PASSWORD}" psql \
-          -h pgvector \
-          -U "$${POSTGRES_USER}" \
-          -d postgres \
-          -tAc "SELECT 1 FROM pg_database WHERE datname='$${STREMTHRU_POSTGRES_DB}'" \
-          | grep -q 1; then
-          PGPASSWORD="$${POSTGRES_PASSWORD}" createdb \
+        for database in "$${STREMTHRU_POSTGRES_DB}" "$${AIOMETADATA_POSTGRES_DB}"; do
+          if ! PGPASSWORD="$${POSTGRES_PASSWORD}" psql \
             -h pgvector \
             -U "$${POSTGRES_USER}" \
-            "$${STREMTHRU_POSTGRES_DB}"
-        fi
+            -d postgres \
+            -tAc "SELECT 1 FROM pg_database WHERE datname='$${database}'" \
+            | grep -q 1; then
+            PGPASSWORD="$${POSTGRES_PASSWORD}" createdb \
+              -h pgvector \
+              -U "$${POSTGRES_USER}" \
+              "$${database}"
+          fi
+        done
     networks:
-      - aiostreams_network
+      aiostreams_network:
+        ipv4_address: 172.32.50.9
     environment:
       POSTGRES_USER: "${POSTGRES_USER}"
       POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
       STREMTHRU_POSTGRES_DB: "${STREMTHRU_POSTGRES_DB}"
+      AIOMETADATA_POSTGRES_DB: "${AIOMETADATA_POSTGRES_DB}"
 
   phimapi-addon:
     image: phimapi-stremio-addon:latest
@@ -86,7 +92,8 @@ services:
       retries: 10
       start_period: 15s
     networks:
-      - aiostreams_network
+      aiostreams_network:
+        ipv4_address: 172.32.50.5
     environment:
       PORT: "${PHIMAPI_PORT}"
       PHIMAPI_URL: "${PHIMAPI_URL}"
@@ -117,7 +124,8 @@ services:
       retries: 10
       start_period: 10s
     networks:
-      - aiostreams_network
+      aiostreams_network:
+        ipv4_address: 172.32.50.7
     environment:
       VALKEY_PASSWORD: "${VALKEY_PASSWORD}"
 
@@ -139,7 +147,8 @@ services:
       retries: 10
       start_period: 20s
     networks:
-      - aiostreams_network
+      aiostreams_network:
+        ipv4_address: 172.32.50.2
     environment:
       STREMTHRU_BASE_URL: "${STREMTHRU_BASE_URL}"
       STREMTHRU_PORT: "${STREMTHRU_PORT}"
@@ -170,6 +179,41 @@ services:
       STREMTHRU_STREMIO_STORE_CATALOG_ITEM_LIMIT: "${STREMTHRU_STREMIO_STORE_CATALOG_ITEM_LIMIT}"
       STREMTHRU_STREMIO_STORE_CATALOG_CACHE_TIME: "${STREMTHRU_STREMIO_STORE_CATALOG_CACHE_TIME}"
 
+  aiometadata:
+    image: ghcr.io/cedya77/aiometadata:latest
+    container_name: aiometadata
+    restart: unless-stopped
+    init: true
+    depends_on:
+      warp:
+        condition: service_healthy
+      valkey:
+        condition: service_healthy
+      postgres-init:
+        condition: service_completed_successfully
+    ports:
+      - "3232:3232"
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3232/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      aiostreams_network:
+        ipv4_address: 172.32.50.3
+    environment:
+      PORT: "3232"
+      HOST_NAME: "${AIOMETADATA_HOST_NAME}"
+      NODE_ENV: production
+      LOG_LEVEL: info
+      DATABASE_URI: "${AIOMETADATA_DATABASE_URI}"
+      REDIS_URL: "${AIOMETADATA_REDIS_URL}"
+      TMDB_API_KEY: "${AIOMETADATA_TMDB_API_KEY}"
+      HTTP_PROXY: http://warp:1080
+      HTTPS_PROXY: http://warp:1080
+      NO_PROXY: localhost,127.0.0.1,valkey,pgvector
+
   aiostreams:
     image: viren070/aiostreams:nightly
     container_name: AIOstreams
@@ -196,12 +240,13 @@ services:
       retries: 3
       start_period: 5s
     networks:
-      - aiostreams_network
+      aiostreams_network:
+        ipv4_address: 172.32.50.8
     environment:
       NODE_USE_ENV_PROXY: "1"
       HTTP_PROXY: "http://warp:1080"
       HTTPS_PROXY: "http://warp:1080"
-      NO_PROXY: "localhost,127.0.0.1,pgvector,valkey,phimapi-addon,stremthru"
+      NO_PROXY: "localhost,127.0.0.1,pgvector,valkey,phimapi-addon,stremthru,torbox.app,.torbox.app"
       BASE_URL: "${BASE_URL}"
       SECRET_KEY: "${AIOSTREAMS_SECRET_KEY}"
       DATABASE_URI: "${DATABASE_URI}"
@@ -215,6 +260,7 @@ services:
       BUILTIN_STREMTHRU_URL: "${BUILTIN_STREMTHRU_URL}"
       STREMTHRU_STORE_URL: "${STREMTHRU_STORE_URL}"
       STREMTHRU_TORZ_URL: "${STREMTHRU_TORZ_URL}"
+      STREMTHRU_NEWZ_URL: "${STREMTHRU_NEWZ_URL}"
       ENCRYPT_STREMTHRU_URLS: "${ENCRYPT_STREMTHRU_URLS}"
       TORBOX_USENET_VIA_STREMTHRU: "${TORBOX_USENET_VIA_STREMTHRU}"
       BUILTIN_DEBRID_INSTANT_AVAILABILITY_CACHE_TTL: "${BUILTIN_DEBRID_INSTANT_AVAILABILITY_CACHE_TTL}"
