@@ -41,7 +41,7 @@ function getManifest(config = null, req = null) {
   return {
     id: 'com.torbox.cached.regex',
     version: '1.0.0',
-    name: 'Torbox Cached Regex Search',
+    name: 'TbCRS',
     description: 'Regex search cached torrents in Torbox cloud & global cache for Stremio & Nuvio.',
     logo: logoUrl,
     icon: logoUrl,
@@ -102,7 +102,7 @@ app.get(['/stream/:type/:id.json', '/:config/stream/:type/:id.json'], async (req
     return res.json({
       streams: [
         {
-          name: 'Torbox Addon',
+          name: 'TbCRS Addon',
           title: '⚠️ Please configure your Torbox API Key in Addon Settings',
           externalUrl: `${protocol}://${host}/configure`
         }
@@ -151,7 +151,7 @@ app.get(['/stream/:type/:id.json', '/:config/stream/:type/:id.json'], async (req
       return res.json({
         streams: [
           {
-            name: '[Torbox Addon]',
+            name: '[TbCRS Addon]',
             title: '⚠️ TorBox API Token Error: Invalid or Expired API Key!\nPlease update API Key in Addon Settings.',
             externalUrl: `${protocol}://${host}/configure`
           }
@@ -175,7 +175,7 @@ app.get(['/stream/:type/:id.json', '/:config/stream/:type/:id.json'], async (req
           const sizeStr = formatSize(file.size);
 
           streams.push({
-            name: `[Torbox Cloud]`,
+            name: `[TbCRS Cloud]`,
             title: `${fileName}\n⚡ Cached | ${quality} | ${sizeStr}`,
             url: streamUrl,
             quality: quality
@@ -201,7 +201,7 @@ app.get(['/stream/:type/:id.json', '/:config/stream/:type/:id.json'], async (req
               const quality = parseQuality(itemName);
 
               streams.push({
-                name: `[Torbox Global]`,
+                name: `[TbCRS Global]`,
                 title: `${itemName}\n⚡ Cached | ${quality} | ${formatSize(targetFile.size || item.size)}`,
                 url: streamUrl,
                 quality: quality

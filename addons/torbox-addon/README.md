@@ -1,4 +1,4 @@
-# Torbox Cached Regex Search Addon (Stremio & Nuvio)
+# TbCRS Addon (Stremio & Nuvio)
 
 Addon dành cho **Stremio** và **Nuvio** giúp tự động tìm kiếm torrents đã **cached** trong tài khoản **Torbox** (và Torbox Global Cache) thông qua Regex Matching theo tên phim/series.
 
