@@ -27,14 +27,24 @@ app.use(express.static(path.join(__dirname, 'public')));
 /**
  * Generates the Stremio Addon Manifest
  */
-function getManifest(config = null) {
+function getManifest(config = null, req = null) {
   const isConfigured = Boolean(config && config.apiKey);
+  let logoUrl = '/icon.png';
+  if (req) {
+    const protocol = req.headers['x-forwarded-proto'] || req.protocol || 'http';
+    const host = req.headers['x-forwarded-host'] || req.get('host');
+    if (host) {
+      logoUrl = `${protocol}://${host}/icon.png`;
+    }
+  }
 
   return {
     id: 'com.torbox.cached.regex',
     version: '1.0.0',
     name: 'Torbox Cached Regex Search',
     description: 'Regex search cached torrents in Torbox cloud & global cache for Stremio & Nuvio.',
+    logo: logoUrl,
+    icon: logoUrl,
     resources: ['stream'],
     types: ['movie', 'series'],
     idPrefixes: ['tt', 'tmdb'],
@@ -65,13 +75,14 @@ function parseConfig(rawConfig) {
 
 // Manifest endpoints
 app.get('/manifest.json', (req, res) => {
-  res.json(getManifest());
+  res.json(getManifest(null, req));
 });
 
 app.get('/:config/manifest.json', (req, res) => {
   const config = parseConfig(req.params.config);
-  res.json(getManifest(config));
+  res.json(getManifest(config, req));
 });
+
 
 // Configure Web UI endpoints
 app.get(['/configure', '/:config/configure'], (req, res) => {

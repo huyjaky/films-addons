@@ -101,6 +101,30 @@ services:
       SEARCH_LIMIT: "${SEARCH_LIMIT}"
       NODE_ENV: "${NODE_ENV}"
 
+  torbox-cached-addon:
+    image: torbox-cached-addon:latest
+    container_name: torbox-cached-addon
+    restart: unless-stopped
+    ports:
+      - "7070:7000"
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://localhost:7000/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+    networks:
+      aiostreams_network:
+        ipv4_address: 172.32.50.11
+    environment:
+      PORT: "7000"
+      NODE_ENV: "${NODE_ENV}"
+
+
   valkey:
     image: valkey/valkey:9.1.1-alpine3.24
     container_name: valkey
@@ -237,6 +261,8 @@ services:
         condition: service_healthy
       phimapi-addon:
         condition: service_healthy
+      torbox-cached-addon:
+        condition: service_healthy
       valkey:
         condition: service_healthy
       stremthru:
@@ -258,7 +284,8 @@ services:
       NODE_USE_ENV_PROXY: "1"
       HTTP_PROXY: "http://warp:1080"
       HTTPS_PROXY: "http://warp:1080"
-      NO_PROXY: "localhost,127.0.0.1,pgvector,valkey,phimapi-addon,stremthru,torbox-addon,torbox.app,.torbox.app"
+      NO_PROXY: "localhost,127.0.0.1,pgvector,valkey,phimapi-addon,torbox-cached-addon,stremthru,torbox.app,.torbox.app"
+
       BASE_URL: "${BASE_URL}"
       SECRET_KEY: "${AIOSTREAMS_SECRET_KEY}"
       DATABASE_URI: "${DATABASE_URI}"
@@ -310,19 +337,6 @@ services:
     networks:
       aiostreams_network:
         ipv4_address: 172.32.50.10
-
-  torbox-addon:
-    image: torbox-stremio-addon:latest
-    container_name: torbox-addon
-    restart: unless-stopped
-    ports:
-      - "${TORBOX_ADDON_PORT:-7070}:7000"
-    environment:
-      PORT: "7000"
-      NODE_ENV: "production"
-    networks:
-      aiostreams_network:
-        ipv4_address: 172.32.50.13
 
 volumes:
   warp_data:
