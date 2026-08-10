@@ -170,7 +170,11 @@ app.get(['/stream/:type/:id.json', '/:config/stream/:type/:id.json'], async (req
             name: `[TbCRS Cloud]`,
             title: `${fileName}\n⚡ Cached | ${quality} | ${sizeStr}`,
             url: streamUrl,
-            quality: quality
+            quality: quality,
+            behaviorHints: {
+              filename: fileName,
+              videoSize: Number(file.size) || undefined
+            }
           });
         }
       }
