@@ -6,8 +6,6 @@ require('dotenv').config();
 const { getMediaMetadata } = require('./services/cinemeta');
 const {
   getUserTorrents,
-  searchCachedTorrents,
-  addCachedTorrent,
   buildStreamPermalink,
   isVideoFile
 } = require('./services/torbox');
@@ -42,7 +40,7 @@ function getManifest(config = null, req = null) {
     id: 'com.torbox.cached.regex',
     version: '1.0.0',
     name: 'TbCRS',
-    description: 'Regex search cached torrents in Torbox cloud & global cache for Stremio & Nuvio.',
+    description: 'Regex search cached torrents in your Torbox cloud for Stremio & Nuvio.',
     logo: logoUrl,
     icon: logoUrl,
     resources: ['stream'],
@@ -67,7 +65,7 @@ function parseConfig(rawConfig) {
   } catch (e) {
     // If not base64, check if it's plain json or API key string
     if (typeof rawConfig === 'string' && rawConfig.length > 10) {
-      return { apiKey: rawConfig, scopeMylist: true, scopeGlobal: true };
+      return { apiKey: rawConfig };
     }
     return null;
   }
@@ -113,9 +111,6 @@ app.get(['/stream/:type/:id.json', '/:config/stream/:type/:id.json'], async (req
   const apiKey = config.apiKey;
   const includeRegex = config.includeRegex || '';
   const excludeRegex = config.excludeRegex || '';
-  const scopeMylist = config.scopeMylist !== false; // Default true
-  const scopeGlobal = config.scopeGlobal !== false; // Default true
-
   try {
     // 1. Fetch metadata (Title, Year, Season, Episode) from Cinemeta
     const meta = await getMediaMetadata(type, id);
@@ -139,11 +134,8 @@ app.get(['/stream/:type/:id.json', '/:config/stream/:type/:id.json'], async (req
 
     const streams = [];
 
-    // 3 & 4. Parallel execution of User Cloud (/mylist) and Global Cache (/search)
-    const [cloudRes, globalResults] = await Promise.all([
-      scopeMylist ? getUserTorrents(apiKey) : Promise.resolve({ torrents: [], authError: false }),
-      scopeGlobal ? searchCachedTorrents(apiKey, meta.title) : Promise.resolve([])
-    ]);
+    // 3. Fetch the user's TorBox cloud
+    const cloudRes = await getUserTorrents(apiKey);
 
     if (cloudRes.authError) {
       const host = req.get('host') || `localhost:${PORT}`;
@@ -180,34 +172,6 @@ app.get(['/stream/:type/:id.json', '/:config/stream/:type/:id.json'], async (req
             url: streamUrl,
             quality: quality
           });
-        }
-      }
-    }
-
-    // Process Global Cache results (deduplicating against existing Cloud streams)
-    const existingStreamUrls = new Set(streams.map(s => s.url));
-
-    for (const item of globalResults) {
-      const itemName = item.name || item.title || '';
-      if (matcher.validate(itemName)) {
-        const added = await addCachedTorrent(apiKey, item.magnet || item.hash);
-        if (added && added.torrent_id) {
-          const files = added.files || [];
-          const targetFile = files.find(f => isVideoFile(f.name)) || files[0];
-          if (targetFile) {
-            const streamUrl = buildStreamPermalink(apiKey, added.torrent_id, targetFile.id);
-            if (!existingStreamUrls.has(streamUrl)) {
-              existingStreamUrls.add(streamUrl);
-              const quality = parseQuality(itemName);
-
-              streams.push({
-                name: `[TbCRS Global]`,
-                title: `${itemName}\n⚡ Cached | ${quality} | ${formatSize(targetFile.size || item.size)}`,
-                url: streamUrl,
-                quality: quality
-              });
-            }
-          }
         }
       }
     }

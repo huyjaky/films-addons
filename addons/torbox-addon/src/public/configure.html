@@ -275,20 +275,6 @@
         <p class="hint">Filter out streams matching this Regex pattern.</p>
       </div>
 
-      <div class="form-group">
-        <label>Search Scopes</label>
-        <div class="checkbox-group">
-          <label class="checkbox-label">
-            <input type="checkbox" id="scopeMylist" checked />
-            📦 Search Personal Torbox Cloud ([Torbox Cloud])
-          </label>
-          <label class="checkbox-label">
-            <input type="checkbox" id="scopeGlobal" checked />
-            🌐 Search Torbox Global Cache ([Torbox Global])
-          </label>
-        </div>
-      </div>
-
       <div class="actions">
         <button type="submit" class="btn btn-primary" id="installBtn">
           ⚡ Install to Stremio
@@ -310,8 +296,6 @@
     const togglePwdBtn = document.getElementById('togglePwdBtn');
     const includeRegexInput = document.getElementById('includeRegex');
     const excludeRegexInput = document.getElementById('excludeRegex');
-    const scopeMylistInput = document.getElementById('scopeMylist');
-    const scopeGlobalInput = document.getElementById('scopeGlobal');
     const manifestPreview = document.getElementById('manifestPreview');
     const toast = document.getElementById('toast');
 
@@ -338,9 +322,7 @@
       return {
         apiKey: apiKeyInput.value.trim(),
         includeRegex: includeRegexInput.value.trim(),
-        excludeRegex: excludeRegexInput.value.trim(),
-        scopeMylist: scopeMylistInput.checked,
-        scopeGlobal: scopeGlobalInput.checked
+        excludeRegex: excludeRegexInput.value.trim()
       };
     }
 

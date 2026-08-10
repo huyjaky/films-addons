@@ -105,6 +105,10 @@ services:
     image: torbox-cached-addon:latest
     container_name: torbox-cached-addon
     restart: unless-stopped
+    init: true
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
     ports:
       - "7070:7000"
     healthcheck:

@@ -1,11 +1,11 @@
 # TbCRS Addon (Stremio & Nuvio)
 
-Addon dành cho **Stremio** và **Nuvio** giúp tự động tìm kiếm torrents đã **cached** trong tài khoản **Torbox** (và Torbox Global Cache) thông qua Regex Matching theo tên phim/series.
+Addon dành cho **Stremio** và **Nuvio** giúp tự động tìm kiếm torrents đã **cached** trong tài khoản **Torbox** thông qua Regex Matching theo tên phim/series.
 
 ## 🌟 Tính năng nổi bật
 - **Chuẩn Stremio Addon Protocol v3**: Tương thích hoàn toàn với Stremio (Desktop, Web, Mobile, TV) và Nuvio.
 - **Tự động Regex Search**: Chuyển đổi tên phim từ Cinemeta/TMDB thành Pattern Regex thông minh (khớp linh hoạt dấu câu, khoảng trắng, năm sản xuất, mùa & tập `S01E05`).
-- **Chỉ phát torrent Cached**: Tìm kiếm trong tài khoản Torbox (`mylist`) & Cache Check (`checkcached`) đảm bảo tốc độ phát tức thì, không chờ tải xuống.
+- **Chỉ phát torrent Cached**: Tìm kiếm trong tài khoản Torbox (`mylist`) để phát ngay, không tự động thêm torrent.
 - **Stream Direct Permalinks**: Trực tiếp phát video từ CDN Torbox bằng permalink tự động chuyển hướng.
 - **Trang Cấu hình Web UI Thần thánh**: Giao diện Glassmorphic hiện đại tại `/configure` giúp dễ dàng nhập Torbox API Token, tùy chỉnh bộ lọc Regex (Include/Exclude) và tạo link cài đặt 1-Click.
 - **Đóng gói Docker**: Sẵn sàng chạy bằng Docker Container hoặc Docker Compose.
