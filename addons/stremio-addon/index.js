@@ -277,21 +277,22 @@ app.get('/stream/:type/:id.json', async (req, res) => {
       const host = req.get('x-forwarded-host') || req.get('host');
       const proto = req.get('x-forwarded-proto') || req.protocol || 'http';
       const baseUrl = `${proto}://${host}`;
+      const seenUrls = new Set();
 
       item.episodes.forEach(server => {
         if (server.server_data && server.server_data[targetIndex]) {
           const epData = server.server_data[targetIndex];
-          if (epData.link_m3u8) {
+          if (epData.link_m3u8 && !seenUrls.has(epData.link_m3u8)) {
+            seenUrls.add(epData.link_m3u8);
             const serverName = server.server_name || 'VIP';
             const epName = epData.name || (type === 'series' ? `Tập ${targetIndex + 1}` : 'Full');
             const quality = item.quality || 'FHD';
-            const lang = item.lang || 'Vietsub';
             const proxyStreamUrl = `${baseUrl}/hls/manifest?url=${encodeURIComponent(epData.link_m3u8)}`;
 
             // 1. Proxied Stream (Bypasses all client-side ISP geo-blocks via server WARP)
             streams.push({
               name: `[KKPhim] ${serverName} (Proxy WARP)`,
-              title: `${item.name} - ${epName} [Proxy WARP] [${quality}] [${lang}]\n⚡ Nguồn: KKPhim (Proxy WARP) | ${quality} | ${lang}`,
+              title: `${item.name} - ${epName} [${serverName}] [Proxy WARP] [${quality}]\n⚡ Nguồn: KKPhim (${serverName}) | Proxy WARP | ${quality}`,
               url: proxyStreamUrl,
               behaviorHints: {
                 notWebReady: false,
@@ -307,7 +308,7 @@ app.get('/stream/:type/:id.json', async (req, res) => {
             // 2. Direct Stream
             streams.push({
               name: `[KKPhim] ${serverName} (Direct)`,
-              title: `${item.name} - ${epName} [Direct CDN] [${quality}] [${lang}]\n⚡ Nguồn: KKPhim (Direct CDN) | ${quality} | ${lang}`,
+              title: `${item.name} - ${epName} [${serverName}] [Direct CDN] [${quality}]\n⚡ Nguồn: KKPhim (${serverName}) | Direct CDN | ${quality}`,
               url: epData.link_m3u8,
               behaviorHints: {
                 notWebReady: false,
