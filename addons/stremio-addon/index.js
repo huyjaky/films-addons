@@ -291,7 +291,7 @@ app.get('/stream/:type/:id.json', async (req, res) => {
             // 1. Proxied Stream (Bypasses all client-side ISP geo-blocks via server WARP)
             streams.push({
               name: `[KKPhim] ${serverName} (Proxy WARP)`,
-              title: `${item.name} - ${epName}\n⚡ Nguồn: KKPhim (Proxy WARP) | ${quality} | ${lang}`,
+              title: `${item.name} - ${epName} [Proxy WARP] [${quality}] [${lang}]\n⚡ Nguồn: KKPhim (Proxy WARP) | ${quality} | ${lang}`,
               url: proxyStreamUrl,
               behaviorHints: {
                 notWebReady: false,
@@ -307,7 +307,7 @@ app.get('/stream/:type/:id.json', async (req, res) => {
             // 2. Direct Stream
             streams.push({
               name: `[KKPhim] ${serverName} (Direct)`,
-              title: `${item.name} - ${epName}\n⚡ Nguồn: KKPhim (Direct CDN) | ${quality} | ${lang}`,
+              title: `${item.name} - ${epName} [Direct CDN] [${quality}] [${lang}]\n⚡ Nguồn: KKPhim (Direct CDN) | ${quality} | ${lang}`,
               url: epData.link_m3u8,
               behaviorHints: {
                 notWebReady: false,
