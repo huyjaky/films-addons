@@ -25,24 +25,6 @@ const manifest = {
         { name: 'search', isRequired: false },
         { name: 'skip', isRequired: false }
       ]
-    },
-    {
-      id: 'phimapi-movies',
-      type: 'movie',
-      name: 'Phim lẻ KKPhim',
-      extra: [
-        { name: 'search', isRequired: false },
-        { name: 'skip', isRequired: false }
-      ]
-    },
-    {
-      id: 'phimapi-series',
-      type: 'series',
-      name: 'Phim bộ KKPhim',
-      extra: [
-        { name: 'search', isRequired: false },
-        { name: 'skip', isRequired: false }
-      ]
     }
   ]
 };

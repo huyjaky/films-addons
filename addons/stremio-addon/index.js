@@ -74,7 +74,7 @@ const handleCatalog = async (req, res) => {
   console.log(`[Catalog] Request - Type: ${type}, ID: ${id}, Extra: ${extra || 'none'}`);
 
   // Validate catalog ID
-  const validIds = ['kkphim-movies', 'kkphim-series', 'phimapi-movies', 'phimapi-series'];
+  const validIds = ['kkphim-movies', 'kkphim-series'];
   if (!validIds.includes(id)) {
     return res.status(404).json({ err: 'Invalid catalog ID' });
   }
