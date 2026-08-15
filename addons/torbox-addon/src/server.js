@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const { createHash, timingSafeEqual } = require('crypto');
 require('dotenv').config();
 
 const { getMediaMetadata } = require('./services/cinemeta');
@@ -17,6 +18,18 @@ const {
 
 const app = express();
 const PORT = process.env.PORT || 7000;
+const accessHash = process.env.TBCRS_ACCESS_HASH || '';
+
+if (!/^[a-f0-9]{64}$/i.test(accessHash)) {
+  throw new Error('TBCRS_ACCESS_HASH must be a SHA-256 hex digest');
+}
+
+const expectedAccessHash = Buffer.from(accessHash, 'hex');
+
+function hasAccess(config) {
+  const suppliedHash = createHash('sha256').update(config?.accessToken || '').digest();
+  return timingSafeEqual(expectedAccessHash, suppliedHash);
+}
 
 app.use(cors());
 app.use(express.json());
@@ -78,6 +91,7 @@ app.get('/manifest.json', (req, res) => {
 
 app.get('/:config/manifest.json', (req, res) => {
   const config = parseConfig(req.params.config);
+  if (!hasAccess(config)) return res.status(401).json({ error: 'Unauthorized' });
   res.json(getManifest(config, req));
 });
 
@@ -92,6 +106,10 @@ app.get(['/stream/:type/:id.json', '/:config/stream/:type/:id.json'], async (req
   const { type, id } = req.params;
   const rawConfig = req.params.config;
   const config = parseConfig(rawConfig);
+
+  if (!hasAccess(config)) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
 
   // If no API key configured, prompt user to configure
   if (!config || !config.apiKey) {

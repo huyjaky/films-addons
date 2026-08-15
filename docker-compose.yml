@@ -1,28 +1,6 @@
 name: aiostreams-stack
 
 services:
-  warp:
-    image: caomingjun/warp:latest
-    container_name: warp
-    restart: unless-stopped
-    cap_add:
-      - NET_ADMIN
-      - MKNOD
-      - AUDIT_WRITE
-    device_cgroup_rules:
-      - "c 10:200 rwm"
-    sysctls:
-      net.ipv6.conf.all.disable_ipv6: "0"
-      net.ipv4.conf.all.src_valid_mark: "1"
-    environment:
-      WARP_SLEEP: "2"
-      BETA_FIX_HOST_CONNECTIVITY: "1"
-    volumes:
-      - warp_data:/var/lib/cloudflare-warp
-    networks:
-      aiostreams_network:
-        ipv4_address: 172.32.50.4
-
   pgvector:
     image: pgvector/pgvector:0.8.2-pg18-trixie
     container_name: pgvector
@@ -127,6 +105,7 @@ services:
     environment:
       PORT: "7000"
       NODE_ENV: "${NODE_ENV}"
+      TBCRS_ACCESS_HASH: "${TBCRS_ACCESS_HASH}"
 
 
   valkey:
@@ -215,8 +194,6 @@ services:
     restart: unless-stopped
     init: true
     depends_on:
-      warp:
-        condition: service_healthy
       valkey:
         condition: service_healthy
       postgres-init:
@@ -239,28 +216,35 @@ services:
       HOST_NAME: "${AIOMETADATA_HOST_NAME}"
       NODE_ENV: production
       LOG_LEVEL: info
+      NODE_OPTIONS: "--max-old-space-size=2048 --max-http-header-size=32768"
+      UV_THREADPOOL_SIZE: "32"
       DATABASE_URI: "${AIOMETADATA_DATABASE_URI}"
       REDIS_URL: "${AIOMETADATA_REDIS_URL}"
       TMDB_API_KEY: "${AIOMETADATA_TMDB_API_KEY}"
-      ENABLE_BUILTIN_POSTER_CACHE: "${ENABLE_BUILTIN_POSTER_CACHE}"
-      POSTER_CACHE_BACKGROUNDS: "${POSTER_CACHE_BACKGROUNDS}"
-      POSTER_CACHE_LOGOS: "${POSTER_CACHE_LOGOS}"
-      POSTER_CACHE_PROCESSED_IMAGES: "${POSTER_CACHE_PROCESSED_IMAGES}"
-      POSTER_CACHE_MAX_SIZE: "${POSTER_CACHE_MAX_SIZE}"
-      POSTER_CACHE_MEMORY_SIZE: "${POSTER_CACHE_MEMORY_SIZE}"
-      PREFER_SMALLER_LOGOS_TMDB: "${PREFER_SMALLER_LOGOS_TMDB}"
-      PREFER_SMALLER_LANDSCAPE_TMDB: "${PREFER_SMALLER_LANDSCAPE_TMDB}"
-      HTTP_PROXY: http://warp:1080
-      HTTPS_PROXY: http://warp:1080
-      NO_PROXY: localhost,127.0.0.1,valkey,pgvector
+      TRAKT_CLIENT_ID: "${AIOMETADATA_TRAKT_CLIENT_ID}"
+      TRAKT_CLIENT_SECRET: "${AIOMETADATA_TRAKT_CLIENT_SECRET}"
+      RESPONSE_COMPRESSION_ENABLED: "true"
+      ENABLE_BUILTIN_POSTER_CACHE: "${ENABLE_BUILTIN_POSTER_CACHE:-true}"
+      POSTER_CACHE_BACKGROUNDS: "${POSTER_CACHE_BACKGROUNDS:-true}"
+      POSTER_CACHE_LOGOS: "${POSTER_CACHE_LOGOS:-true}"
+      POSTER_CACHE_PROCESSED_IMAGES: "${POSTER_CACHE_PROCESSED_IMAGES:-true}"
+      POSTER_CACHE_MAX_SIZE: "${POSTER_CACHE_MAX_SIZE:-10g}"
+      POSTER_CACHE_MEMORY_SIZE: "${POSTER_CACHE_MEMORY_SIZE:-512m}"
+      PREFER_SMALLER_LOGOS_TMDB: "${PREFER_SMALLER_LOGOS_TMDB:-true}"
+      PREFER_SMALLER_LANDSCAPE_TMDB: "${PREFER_SMALLER_LANDSCAPE_TMDB:-true}"
+      CATALOG_REFRESH_AHEAD_ENABLED: "true"
+      CATALOG_REFRESH_AHEAD_MAX_CONCURRENT: "10"
+      CATALOG_REFRESH_AHEAD_FRACTION: "0.2"
+      ENABLE_CACHE_WARMING: "true"
+      TMDB_POPULAR_WARMING_ENABLED: "true"
+      CACHE_WARMUP_ON_STARTUP: "true"
+      CACHE_WARM_INTERVAL_HOURS: "6"
 
   aiostreams:
     image: viren070/aiostreams:nightly
     container_name: AIOstreams
     restart: unless-stopped
     depends_on:
-      warp:
-        condition: service_healthy
       pgvector:
         condition: service_healthy
       phimapi-addon:
@@ -285,11 +269,6 @@ services:
       aiostreams_network:
         ipv4_address: 172.32.50.8
     environment:
-      NODE_USE_ENV_PROXY: "1"
-      HTTP_PROXY: "http://warp:1080"
-      HTTPS_PROXY: "http://warp:1080"
-      NO_PROXY: "localhost,127.0.0.1,pgvector,valkey,phimapi-addon,torbox-cached-addon,stremthru,torbox.app,.torbox.app"
-
       BASE_URL: "${BASE_URL}"
       SECRET_KEY: "${AIOSTREAMS_SECRET_KEY}"
       DATABASE_URI: "${DATABASE_URI}"
@@ -341,9 +320,6 @@ services:
     networks:
       aiostreams_network:
         ipv4_address: 172.32.50.10
-
-volumes:
-  warp_data:
 
 networks:
   aiostreams_network:

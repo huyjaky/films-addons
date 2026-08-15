@@ -255,6 +255,11 @@
 
     <form id="configForm">
       <div class="form-group">
+        <label for="accessToken">TbCRS Access Token *</label>
+        <input type="password" id="accessToken" placeholder="Enter the server access token..." required />
+      </div>
+
+      <div class="form-group">
         <label for="apiKey">Torbox API Token *</label>
         <div class="input-wrapper">
           <input type="password" id="apiKey" placeholder="Paste your Torbox API Key here..." required />
@@ -292,6 +297,7 @@
 
   <script>
     const form = document.getElementById('configForm');
+    const accessTokenInput = document.getElementById('accessToken');
     const apiKeyInput = document.getElementById('apiKey');
     const togglePwdBtn = document.getElementById('togglePwdBtn');
     const includeRegexInput = document.getElementById('includeRegex');
@@ -320,6 +326,7 @@
 
     function buildConfigObj() {
       return {
+        accessToken: accessTokenInput.value.trim(),
         apiKey: apiKeyInput.value.trim(),
         includeRegex: includeRegexInput.value.trim(),
         excludeRegex: excludeRegexInput.value.trim()
@@ -328,7 +335,7 @@
 
     function getManifestUrl() {
       const config = buildConfigObj();
-      if (!config.apiKey) return null;
+      if (!config.accessToken || !config.apiKey) return null;
       const encoded = btoa(JSON.stringify(config));
       const origin = window.location.origin;
       return `${origin}/${encoded}/manifest.json`;
@@ -338,7 +345,7 @@
       e.preventDefault();
       const url = getManifestUrl();
       if (!url) {
-        alert('Please enter your Torbox API Token.');
+        alert('Please enter the TbCRS Access Token and Torbox API Token.');
         return;
       }
       // Convert https:// or http:// to stremio:// protocol link
@@ -349,7 +356,7 @@
     document.getElementById('copyBtn').addEventListener('click', () => {
       const url = getManifestUrl();
       if (!url) {
-        alert('Please enter your Torbox API Token first.');
+        alert('Please enter the TbCRS Access Token and Torbox API Token first.');
         return;
       }
       navigator.clipboard.writeText(url).then(() => {

@@ -1,6 +1,7 @@
 import subprocess
 import json
 import time
+import base64
 
 ECR = "266735814883.dkr.ecr.ap-southeast-1.amazonaws.com"
 INSTANCE_ID = "i-02065971b24b80e3a"
@@ -28,14 +29,13 @@ prod_compose = compose_content.replace(
     "/opt/aiostreams/data/aiostreams"
 )
 
-# Escape single quotes for bash
-escaped_compose = prod_compose.replace("'", "'\"'\"'")
+encoded_compose = base64.b64encode(prod_compose.encode()).decode()
 
 remote_commands = [
     "cd /opt/aiostreams",
     f"aws ecr get-login-password --region {REGION} | docker login --username AWS --password-stdin {ECR}",
     f"docker pull {ECR}/torbox-cached-addon:latest",
-    f"cat << 'EOF' > /opt/aiostreams/docker-compose.yml\n{prod_compose}\nEOF",
+    f"echo {encoded_compose} | base64 -d > /opt/aiostreams/docker-compose.yml",
     "/usr/local/bin/docker-compose up -d --remove-orphans",
     "docker ps --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}'"
 ]
@@ -83,4 +83,3 @@ for _ in range(30):
                 print("--- Errors ---")
                 print(inv.get("StandardErrorContent"))
             break
-
