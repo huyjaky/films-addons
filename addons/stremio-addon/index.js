@@ -416,6 +416,39 @@ app.get('/hls/segment', async (req, res) => {
   }
 });
 
+// Image CDN Proxy for Nuvio Collections & Assets
+app.get('/img', async (req, res) => {
+  const targetUrl = req.query.url;
+  if (!targetUrl) {
+    return res.status(400).send('Missing url parameter');
+  }
+
+  try {
+    const fetch = (await import('node-fetch')).default;
+    const upstreamRes = await fetch(targetUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36',
+        'Accept': 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8'
+      }
+    });
+
+    if (!upstreamRes.ok) {
+      return res.status(upstreamRes.status).send('Failed to fetch image');
+    }
+
+    res.setHeader('Content-Type', upstreamRes.headers.get('content-type') || 'image/png');
+    res.setHeader('Cache-Control', 'public, max-age=31536000, s-maxage=31536000, immutable');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+
+    const { Readable } = require('stream');
+    Readable.fromWeb(upstreamRes.body).pipe(res);
+  } catch (err) {
+    console.error('[Image Proxy Error]:', err.message);
+    res.status(500).send('Error proxying image');
+  }
+});
+
 // Health check endpoint
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', service: 'kkphim-stremio-addon' });
