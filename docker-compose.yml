@@ -94,6 +94,8 @@ services:
       timeout: 5s
       retries: 10
       start_period: 15s
+    ports:
+      - "7001:7000"
     networks:
       aiostreams_network:
         ipv4_address: 172.32.50.5

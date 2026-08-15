@@ -166,6 +166,7 @@ async function findMovieByImdbOrTitle({ imdbId, title, year }) {
 }
 
 module.exports = {
+  fetchWithWarp,
   searchMovies,
   getMoviesList,
   getMovieDetails,

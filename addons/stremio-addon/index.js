@@ -274,6 +274,9 @@ app.get('/stream/:type/:id.json', async (req, res) => {
 
     if (item.episodes && item.episodes.length > 0) {
       const targetIndex = type === 'series' && episode ? episode - 1 : 0;
+      const host = req.get('x-forwarded-host') || req.get('host');
+      const proto = req.get('x-forwarded-proto') || req.protocol || 'http';
+      const baseUrl = `${proto}://${host}`;
 
       item.episodes.forEach(server => {
         if (server.server_data && server.server_data[targetIndex]) {
@@ -283,11 +286,38 @@ app.get('/stream/:type/:id.json', async (req, res) => {
             const epName = epData.name || (type === 'series' ? `Tập ${targetIndex + 1}` : 'Full');
             const quality = item.quality || 'FHD';
             const lang = item.lang || 'Vietsub';
+            const proxyStreamUrl = `${baseUrl}/hls/manifest?url=${encodeURIComponent(epData.link_m3u8)}`;
 
+            // 1. Proxied Stream (Bypasses all client-side ISP geo-blocks via server WARP)
             streams.push({
-              name: `[KKPhim] ${serverName}`,
-              title: `${item.name} - ${epName}\n⚡ Nguồn: KKPhim (WARP) | ${quality} | ${lang}`,
-              url: epData.link_m3u8
+              name: `[KKPhim] ${serverName} (Proxy WARP)`,
+              title: `${item.name} - ${epName}\n⚡ Nguồn: KKPhim (Proxy WARP) | ${quality} | ${lang}`,
+              url: proxyStreamUrl,
+              behaviorHints: {
+                notWebReady: false,
+                proxyHeaders: {
+                  request: {
+                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36",
+                    "Referer": "https://phimapi.com/"
+                  }
+                }
+              }
+            });
+
+            // 2. Direct Stream
+            streams.push({
+              name: `[KKPhim] ${serverName} (Direct)`,
+              title: `${item.name} - ${epName}\n⚡ Nguồn: KKPhim (Direct CDN) | ${quality} | ${lang}`,
+              url: epData.link_m3u8,
+              behaviorHints: {
+                notWebReady: false,
+                proxyHeaders: {
+                  request: {
+                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36",
+                    "Referer": "https://phimapi.com/"
+                  }
+                }
+              }
             });
           }
         }
@@ -298,6 +328,90 @@ app.get('/stream/:type/:id.json', async (req, res) => {
   } catch (err) {
     console.error('Error handling stream:', err);
     res.json({ streams: [] });
+  }
+});
+
+// HLS Manifest Proxy
+app.get('/hls/manifest', async (req, res) => {
+  const targetUrl = req.query.url;
+  if (!targetUrl) {
+    return res.status(400).send('Missing url parameter');
+  }
+
+  try {
+    const upstreamRes = await api.fetchWithWarp(targetUrl);
+    if (!upstreamRes.ok) {
+      return res.status(upstreamRes.status).send('Failed to fetch upstream manifest');
+    }
+
+    const host = req.get('x-forwarded-host') || req.get('host');
+    const proto = req.get('x-forwarded-proto') || req.protocol || 'http';
+    const baseUrl = `${proto}://${host}`;
+
+    const body = await upstreamRes.text();
+    const urlObj = new URL(targetUrl);
+    const basePath = targetUrl.substring(0, targetUrl.lastIndexOf('/') + 1);
+
+    const lines = body.split('\n');
+    const rewritten = lines.map(line => {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith('#')) {
+        return line;
+      }
+
+      let absoluteUrl = trimmed;
+      if (!trimmed.startsWith('http://') && !trimmed.startsWith('https://')) {
+        if (trimmed.startsWith('/')) {
+          absoluteUrl = `${urlObj.origin}${trimmed}`;
+        } else {
+          absoluteUrl = `${basePath}${trimmed}`;
+        }
+      }
+
+      if (trimmed.endsWith('.m3u8') || trimmed.includes('.m3u8?')) {
+        return `${baseUrl}/hls/manifest?url=${encodeURIComponent(absoluteUrl)}`;
+      } else {
+        return `${baseUrl}/hls/segment?url=${encodeURIComponent(absoluteUrl)}`;
+      }
+    });
+
+    res.setHeader('Content-Type', 'application/vnd.apple.mpegurl');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.send(rewritten.join('\n'));
+  } catch (err) {
+    console.error('[HLS Manifest Proxy Error]:', err.message);
+    res.status(500).send('Proxy error');
+  }
+});
+
+// HLS Video Segment Proxy (.ts, .m4s)
+app.get('/hls/segment', async (req, res) => {
+  const targetUrl = req.query.url;
+  if (!targetUrl) {
+    return res.status(400).send('Missing url parameter');
+  }
+
+  try {
+    const upstreamRes = await api.fetchWithWarp(targetUrl);
+    if (!upstreamRes.ok) {
+      return res.status(upstreamRes.status).send('Failed to fetch upstream segment');
+    }
+
+    res.setHeader('Content-Type', upstreamRes.headers.get('content-type') || 'video/mp2t');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    res.setHeader('Accept-Ranges', 'bytes');
+    if (upstreamRes.headers.get('content-length')) {
+      res.setHeader('Content-Length', upstreamRes.headers.get('content-length'));
+    }
+
+    const { Readable } = require('stream');
+    Readable.fromWeb(upstreamRes.body).pipe(res);
+  } catch (err) {
+    console.error('[HLS Segment Proxy Error]:', err.message);
+    res.status(500).send('Proxy error');
   }
 });
 
