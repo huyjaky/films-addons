@@ -8,7 +8,9 @@
   },
   "dependencies": {
     "cors": "^2.8.5",
-    "dotenv": "^17.4.2",
-    "express": "^4.19.2"
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "https-proxy-agent": "^7.0.5",
+    "socks-proxy-agent": "^8.0.4"
   }
 }

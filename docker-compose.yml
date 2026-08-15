@@ -1,6 +1,28 @@
 name: aiostreams-stack
 
 services:
+  warp:
+    image: caomingjun/warp:latest
+    container_name: warp
+    restart: unless-stopped
+    cap_add:
+      - NET_ADMIN
+      - MKNOD
+      - AUDIT_WRITE
+    device_cgroup_rules:
+      - "c 10:200 rwm"
+    sysctls:
+      net.ipv6.conf.all.disable_ipv6: "0"
+      net.ipv4.conf.all.src_valid_mark: "1"
+    environment:
+      WARP_SLEEP: "2"
+      BETA_FIX_HOST_CONNECTIVITY: "1"
+    volumes:
+      - warp_data:/var/lib/cloudflare-warp
+    networks:
+      aiostreams_network:
+        ipv4_address: 172.32.50.4
+
   pgvector:
     image: pgvector/pgvector:0.8.2-pg18-trixie
     container_name: pgvector
@@ -59,12 +81,15 @@ services:
     image: phimapi-stremio-addon:latest
     container_name: phimapi-addon
     restart: unless-stopped
+    depends_on:
+      warp:
+        condition: service_healthy
     healthcheck:
       test:
         - CMD
         - node
         - -e
-        - "fetch('http://localhost:7000/manifest.json').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"
+        - "fetch('http://localhost:7000/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"
       interval: 15s
       timeout: 5s
       retries: 10
@@ -73,11 +98,11 @@ services:
       aiostreams_network:
         ipv4_address: 172.32.50.5
     environment:
-      PORT: "${PHIMAPI_PORT}"
-      PHIMAPI_URL: "${PHIMAPI_URL}"
-      OPHIM_URL: "${OPHIM_URL}"
-      SEARCH_LIMIT: "${SEARCH_LIMIT}"
-      NODE_ENV: "${NODE_ENV}"
+      PORT: "${PHIMAPI_PORT:-7000}"
+      KKPHIM_URL: "${KKPHIM_URL:-https://phimapi.com/v1/api}"
+      WARP_PROXY_URL: "${WARP_PROXY_URL:-http://warp:1080}"
+      SEARCH_LIMIT: "${SEARCH_LIMIT:-100}"
+      NODE_ENV: "${NODE_ENV:-production}"
 
   torbox-cached-addon:
     image: torbox-cached-addon:latest
@@ -320,6 +345,9 @@ services:
     networks:
       aiostreams_network:
         ipv4_address: 172.32.50.10
+
+volumes:
+  warp_data:
 
 networks:
   aiostreams_network:

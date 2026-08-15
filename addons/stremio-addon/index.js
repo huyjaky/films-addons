@@ -7,8 +7,47 @@ const api = require('./api');
 
 const app = express();
 const PORT = process.env.PORT || 7000;
-const OPHIM_URL = process.env.OPHIM_URL || 'https://ophim1.com/v1/api';
 const SEARCH_LIMIT = parseInt(process.env.SEARCH_LIMIT) || 1000;
+const CINEMETA_URL = 'https://v3-cinemeta.strem.io';
+
+// In-memory cache for Cinemeta lookups (TTL 12h)
+const cinemetaCache = new Map();
+const CINEMETA_CACHE_TTL = 12 * 60 * 60 * 1000;
+
+async function getCinemetaMeta(type, id) {
+  const parts = id.split(':');
+  const mainId = parts[0];
+  const cacheKey = `${type}:${mainId}`;
+
+  if (cinemetaCache.has(cacheKey)) {
+    const cached = cinemetaCache.get(cacheKey);
+    if (Date.now() - cached.timestamp < CINEMETA_CACHE_TTL) {
+      return cached.data;
+    }
+  }
+
+  try {
+    const metaType = type === 'series' ? 'series' : 'movie';
+    const res = await fetch(`${CINEMETA_URL}/meta/${metaType}/${mainId}.json`, {
+      signal: AbortSignal.timeout(5000)
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (data && data.meta) {
+        const result = {
+          name: data.meta.name,
+          year: data.meta.year ? parseInt(String(data.meta.year).split('-')[0], 10) : undefined
+        };
+        cinemetaCache.set(cacheKey, { data: result, timestamp: Date.now() });
+        return result;
+      }
+    }
+  } catch (err) {
+    console.warn(`[Cinemeta] Lookup failed for ${id}:`, err.message);
+  }
+
+  return { name: '', year: undefined };
+}
 
 // Enable CORS for Stremio client
 app.use(cors());
@@ -35,7 +74,8 @@ const handleCatalog = async (req, res) => {
   console.log(`[Catalog] Request - Type: ${type}, ID: ${id}, Extra: ${extra || 'none'}`);
 
   // Validate catalog ID
-  if (id !== 'phimapi-movies' && id !== 'phimapi-series') {
+  const validIds = ['kkphim-movies', 'kkphim-series', 'phimapi-movies', 'phimapi-series'];
+  if (!validIds.includes(id)) {
     return res.status(404).json({ err: 'Invalid catalog ID' });
   }
 
@@ -43,7 +83,6 @@ const handleCatalog = async (req, res) => {
   let search = null;
   let skip = 0;
   if (extra) {
-    // Strip trailing .json if present in the extra parameter
     const cleanExtra = extra.replace(/\.json$/, '');
     const params = new URLSearchParams(cleanExtra);
     search = params.get('search');
@@ -58,75 +97,17 @@ const handleCatalog = async (req, res) => {
     let cdnDomain = 'https://phimimg.com';
 
     if (search) {
-      // User is searching both PhimAPI and OPhim in parallel
-      const [phimapiSearchRes, ophimSearchRes] = await Promise.all([
-        api.searchMovies(search, 1, SEARCH_LIMIT),
-        api.searchOPhim(search, 1, SEARCH_LIMIT)
-      ]);
+      // User is searching KKPhim
+      const searchRes = await api.searchMovies(search, 1, SEARCH_LIMIT);
 
-      const searchMetas = [];
-
-      // Process PhimAPI results
-      if (phimapiSearchRes && phimapiSearchRes.status === 'success' && phimapiSearchRes.data) {
-        const cdnDomain = phimapiSearchRes.data.APP_DOMAIN_CDN_IMAGE || 'https://phimimg.com';
-        const rawItems = phimapiSearchRes.data.items || [];
-        rawItems.forEach(item => {
+      if (searchRes && searchRes.status === 'success' && searchRes.data) {
+        cdnDomain = searchRes.data.APP_DOMAIN_CDN_IMAGE || cdnDomain;
+        const rawItems = searchRes.data.items || [];
+        items = rawItems.filter(item => {
           const isSeries = isSeriesType(item.type);
-          const matchesType = type === 'series' ? isSeries : !isSeries;
-          if (matchesType) {
-            searchMetas.push({
-              id: `phimapi:${item.slug}`,
-              type: isSeries ? 'series' : 'movie',
-              name: item.name,
-              poster: api.getAbsoluteUrl(item.poster_url, cdnDomain),
-              background: api.getAbsoluteUrl(item.thumb_url, cdnDomain),
-              releaseInfo: item.year ? String(item.year) : undefined
-            });
-          }
+          return type === 'series' ? isSeries : !isSeries;
         });
       }
-
-      // Process OPhim results
-      if (ophimSearchRes && ophimSearchRes.status === 'success' && ophimSearchRes.data) {
-        const cdnDomain = ophimSearchRes.data.APP_DOMAIN_CDN_IMAGE || 'https://img.ophim.live';
-        const rawItems = ophimSearchRes.data.items || [];
-        rawItems.forEach(item => {
-          const isSeries = isSeriesType(item.type);
-          const matchesType = type === 'series' ? isSeries : !isSeries;
-          if (matchesType) {
-            searchMetas.push({
-              id: `ophim:${item.slug}`,
-              type: isSeries ? 'series' : 'movie',
-              name: item.name,
-              poster: api.getAbsoluteUrl(item.poster_url, cdnDomain),
-              background: api.getAbsoluteUrl(item.thumb_url, cdnDomain),
-              releaseInfo: item.year ? String(item.year) : undefined
-            });
-          }
-        });
-      }
-
-      // Deduplicate results by title + year to prevent double cards
-      const seenKeys = new Set();
-      const uniqueMetas = [];
-      searchMetas.forEach(meta => {
-        const titleKey = (meta.name || '').toLowerCase().trim().replace(/[^a-z0-9]/g, '');
-        const yearKey = meta.releaseInfo || '';
-        const dedupeKey = `${titleKey}_${yearKey}`;
-        
-        if (!seenKeys.has(dedupeKey)) {
-          seenKeys.add(dedupeKey);
-          uniqueMetas.push(meta);
-        }
-      });
-
-      // Apply pagination slice if skip is requested
-      let finalMetas = uniqueMetas;
-      if (skip > 0) {
-        finalMetas = finalMetas.slice(skip);
-      }
-      
-      return res.json({ metas: finalMetas });
     } else {
       // Browsing standard catalog lists
       const limit = 20;
@@ -139,16 +120,27 @@ const handleCatalog = async (req, res) => {
       }
     }
 
-    // Map to Stremio Meta preview format
+    // Map to Stremio Meta preview format (converting to IMDb ID whenever available)
     const metas = items.map(item => {
       const isSeries = isSeriesType(item.type);
+      
+      // Clean and use IMDb ID if present so Stremio links with Cinemeta & Torrent sources
+      let metaId = `kkphim:${item.slug}`;
+      if (item.imdb?.id && typeof item.imdb.id === 'string') {
+        const cleanImdb = item.imdb.id.trim();
+        if (cleanImdb.startsWith('tt') || /^\d+$/.test(cleanImdb)) {
+          metaId = cleanImdb.startsWith('tt') ? cleanImdb : `tt${cleanImdb}`;
+        }
+      }
+
       return {
-        id: `phimapi:${item.slug}`,
+        id: metaId,
         type: isSeries ? 'series' : 'movie',
         name: item.name,
         poster: api.getAbsoluteUrl(item.poster_url, cdnDomain),
         background: api.getAbsoluteUrl(item.thumb_url, cdnDomain),
-        releaseInfo: item.year ? String(item.year) : undefined
+        releaseInfo: item.year ? String(item.year) : undefined,
+        description: item.origin_name ? `(${item.origin_name})` : undefined
       };
     });
 
@@ -159,7 +151,7 @@ const handleCatalog = async (req, res) => {
   }
 };
 
-// Register catalog endpoints (supporting optional extra param with/without suffix)
+// Register catalog endpoints
 app.get('/catalog/:type/:id.json', handleCatalog);
 app.get('/catalog/:type/:id/:extra', handleCatalog);
 
@@ -168,34 +160,42 @@ app.get('/meta/:type/:id.json', async (req, res) => {
   const { type, id } = req.params;
   console.log(`[Meta] Request - Type: ${type}, ID: ${id}`);
 
-  // Extract slug from format phimapi:{slug} or ophim:{slug}
-  const parts = id.split(':');
-  if ((parts[0] !== 'phimapi' && parts[0] !== 'ophim') || !parts[1]) {
-    return res.status(404).json({ err: 'Invalid meta ID' });
-  }
-  const source = parts[0];
-  const slug = parts[1];
-
   try {
     let detailsRes = null;
-    if (source === 'ophim') {
-      detailsRes = await api.getOPhimMovieDetails(slug);
+
+    if (id.startsWith('tt')) {
+      // Lookup by IMDb ID
+      const parts = id.split(':');
+      const imdbId = parts[0];
+      const cinemeta = await getCinemetaMeta(type, imdbId);
+      detailsRes = await api.findMovieByImdbOrTitle({
+        imdbId,
+        title: cinemeta.name,
+        year: cinemeta.year
+      });
     } else {
+      // Lookup by slug (kkphim:slug or phimapi:slug)
+      const parts = id.split(':');
+      const slug = parts[1] || parts[0];
       detailsRes = await api.getMovieDetails(slug);
     }
 
-    if (!detailsRes || detailsRes.status !== 'success' || !detailsRes.data) {
+    if (!detailsRes || detailsRes.status !== 'success' || !detailsRes.data || !detailsRes.data.item) {
       return res.status(404).json({ err: 'Movie not found' });
     }
 
     const item = detailsRes.data.item;
-    const defaultCdn = source === 'ophim' ? 'https://img.ophim.live' : 'https://phimimg.com';
-    const cdnDomain = detailsRes.data.APP_DOMAIN_CDN_IMAGE || defaultCdn;
+    const cdnDomain = detailsRes.data.APP_DOMAIN_CDN_IMAGE || 'https://phimimg.com';
 
-    // Build the Meta detail object
+    // Preferred Meta ID: IMDb ID if available, otherwise kkphim:${slug}
+    let metaId = id;
+    if (!metaId.startsWith('tt') && item.imdb?.id) {
+      metaId = item.imdb.id.startsWith('tt') ? item.imdb.id : `tt${item.imdb.id}`;
+    }
+
     const meta = {
-      id: `${source}:${item.slug}`,
-      type: type, // 'movie' or 'series'
+      id: metaId,
+      type: type,
       name: item.name,
       description: item.content ? item.content.replace(/<[^>]*>/g, '').trim() : '',
       poster: api.getAbsoluteUrl(item.poster_url, cdnDomain),
@@ -209,8 +209,6 @@ app.get('/meta/:type/:id.json', async (req, res) => {
     // If series, populate episodes list (videos)
     if (type === 'series' && item.episodes && item.episodes.length > 0) {
       meta.videos = [];
-      
-      // Find the server with the most episodes to construct the listing
       let bestServer = item.episodes[0];
       for (const server of item.episodes) {
         if (server.server_data && server.server_data.length > bestServer.server_data.length) {
@@ -221,7 +219,7 @@ app.get('/meta/:type/:id.json', async (req, res) => {
       if (bestServer && bestServer.server_data) {
         bestServer.server_data.forEach((ep, index) => {
           meta.videos.push({
-            id: `${source}:${item.slug}:1:${index + 1}`, // format: source:{slug}:{season}:{episode}
+            id: metaId.startsWith('tt') ? `${metaId}:1:${index + 1}` : `kkphim:${item.slug}:1:${index + 1}`,
             title: ep.name || `Tập ${index + 1}`,
             season: 1,
             episode: index + 1,
@@ -243,32 +241,37 @@ app.get('/stream/:type/:id.json', async (req, res) => {
   const { type, id } = req.params;
   console.log(`[Stream] Request - Type: ${type}, ID: ${id}`);
 
-  const parts = id.split(':');
-  if ((parts[0] !== 'phimapi' && parts[0] !== 'ophim') || !parts[1]) {
-    return res.status(404).json({ err: 'Invalid stream ID' });
-  }
-
-  const source = parts[0]; // 'phimapi' or 'ophim'
-  const slug = parts[1];
-  const season = parts[2] ? parseInt(parts[2]) : null;
-  const episode = parts[3] ? parseInt(parts[3]) : null;
+  let detailsRes = null;
+  let episode = 1;
 
   try {
-    let detailsRes = null;
-    if (source === 'ophim') {
-      detailsRes = await api.getOPhimMovieDetails(slug);
+    if (id.startsWith('tt')) {
+      // IMDb ID request format: tt1234567 or tt1234567:1:5
+      const parts = id.split(':');
+      const imdbId = parts[0];
+      episode = parts[2] ? parseInt(parts[2], 10) : 1;
+
+      const cinemeta = await getCinemetaMeta(type, imdbId);
+      detailsRes = await api.findMovieByImdbOrTitle({
+        imdbId,
+        title: cinemeta.name,
+        year: cinemeta.year
+      });
     } else {
+      // Custom format: kkphim:{slug} or phimapi:{slug}:{season}:{episode}
+      const parts = id.split(':');
+      const slug = parts[1] || parts[0];
+      episode = parts[3] ? parseInt(parts[3], 10) : 1;
       detailsRes = await api.getMovieDetails(slug);
     }
 
-    if (!detailsRes || detailsRes.status !== 'success' || !detailsRes.data) {
-      return res.status(404).json({ err: 'Movie details not found' });
+    if (!detailsRes || detailsRes.status !== 'success' || !detailsRes.data || !detailsRes.data.item) {
+      return res.json({ streams: [] });
     }
 
     const item = detailsRes.data.item;
     const streams = [];
 
-    // 1. Extract stream links from the local primary source for this episode
     if (item.episodes && item.episodes.length > 0) {
       const targetIndex = type === 'series' && episode ? episode - 1 : 0;
 
@@ -276,13 +279,14 @@ app.get('/stream/:type/:id.json', async (req, res) => {
         if (server.server_data && server.server_data[targetIndex]) {
           const epData = server.server_data[targetIndex];
           if (epData.link_m3u8) {
-            const serverName = server.server_name || 'Mặc định';
+            const serverName = server.server_name || 'VIP';
             const epName = epData.name || (type === 'series' ? `Tập ${targetIndex + 1}` : 'Full');
-            const sourceLabel = source === 'ophim' ? 'OPhim' : 'PhimAPI';
-            
+            const quality = item.quality || 'FHD';
+            const lang = item.lang || 'Vietsub';
+
             streams.push({
-              name: `${sourceLabel} - ${serverName}`,
-              title: `${item.name} - ${epName}\nServer: ${serverName}\nChất lượng: ${item.quality || 'HD'}\nNgôn ngữ: ${item.lang || 'Vietsub'}`,
+              name: `[KKPhim] ${serverName}`,
+              title: `${item.name} - ${epName}\n⚡ Nguồn: KKPhim (WARP) | ${quality} | ${lang}`,
               url: epData.link_m3u8
             });
           }
@@ -290,146 +294,24 @@ app.get('/stream/:type/:id.json', async (req, res) => {
       });
     }
 
-    // 2. Fetch external streams from cross source in parallel (timeout 3.5s)
-    const targetIndex = type === 'series' && episode ? episode - 1 : 0;
-    
-    // Clean and validate IMDb ID
-    let imdbId = item.imdb?.id;
-    if (imdbId && typeof imdbId === 'string') {
-      imdbId = imdbId.trim();
-      if (!imdbId.startsWith('tt') && /^\d+$/.test(imdbId)) {
-        imdbId = 'tt' + imdbId;
-      }
-    } else {
-      imdbId = null;
-    }
-
-    const tmdbId = item.tmdb?.id;
-    const crossSource = source === 'ophim' ? 'phimapi' : 'ophim';
-
-    // Helper to cross-query search and fetch streams
-    const getCrossStreams = async () => {
-      try {
-        const query = item.origin_name || item.name;
-        if (!query) return [];
-        
-        let searchData;
-        if (crossSource === 'ophim') {
-          const searchUrl = `${OPHIM_URL}/tim-kiem?keyword=${encodeURIComponent(query)}&limit=10`;
-          const response = await fetch(searchUrl);
-          if (!response.ok) return [];
-          searchData = await response.json();
-        } else {
-          searchData = await api.searchMovies(query, 1, 10);
-        }
-        
-        if (!searchData || !searchData.data || !searchData.data.items || searchData.data.items.length === 0) {
-          return [];
-        }
-        
-        const targetImdb = imdbId;
-        const targetTmdb = tmdbId;
-        const targetOriginName = (item.origin_name || '').toLowerCase().trim();
-        const targetName = (item.name || '').toLowerCase().trim();
-        
-        let matchedItem = null;
-        for (const sItem of searchData.data.items) {
-          const sImdb = sItem.imdb?.id;
-          const sTmdb = sItem.tmdb?.id;
-          
-          const sCleanImdb = sImdb && typeof sImdb === 'string' 
-            ? (sImdb.startsWith('tt') ? sImdb : 'tt' + sImdb) 
-            : null;
-            
-          if (targetTmdb && sTmdb && String(targetTmdb) === String(sTmdb)) {
-            matchedItem = sItem;
-            break;
-          }
-          if (targetImdb && sCleanImdb && String(targetImdb) === String(sCleanImdb)) {
-            matchedItem = sItem;
-            break;
-          }
-          if (targetOriginName && sItem.origin_name && targetOriginName === sItem.origin_name.toLowerCase().trim()) {
-            matchedItem = sItem;
-            break;
-          }
-          if (targetName && sItem.name && targetName === sItem.name.toLowerCase().trim()) {
-            matchedItem = sItem;
-            break;
-          }
-        }
-        
-        if (!matchedItem) return [];
-        
-        let detailData;
-        if (crossSource === 'ophim') {
-          detailData = await api.getOPhimMovieDetails(matchedItem.slug);
-        } else {
-          detailData = await api.getMovieDetails(matchedItem.slug);
-        }
-        
-        if (!detailData || detailData.status !== 'success' || !detailData.data || !detailData.data.item) {
-          return [];
-        }
-        
-        const movie = detailData.data.item;
-        const resultStreams = [];
-        
-        if (movie.episodes && movie.episodes.length > 0) {
-          movie.episodes.forEach(server => {
-            if (server.server_data && server.server_data[targetIndex]) {
-              const epData = server.server_data[targetIndex];
-              if (epData.link_m3u8) {
-                const serverName = server.server_name || 'Mặc định';
-                const epName = epData.name || (type === 'series' ? `Tập ${targetIndex + 1}` : 'Full');
-                const label = crossSource === 'ophim' ? 'OPhim' : 'PhimAPI';
-                
-                resultStreams.push({
-                  name: `${label} - ${serverName}`,
-                  title: `${movie.name} - ${epName}\nServer: ${serverName}\nChất lượng: ${movie.quality || 'HD'}\nNguồn: ${label} (M3U8)`,
-                  url: epData.link_m3u8
-                });
-              }
-            }
-          });
-        }
-        
-        return resultStreams;
-      } catch (err) {
-        console.error(`Error fetching cross streams for ${crossSource}:`, err);
-        return [];
-      }
-    };
-
-    const crossPromise = getCrossStreams();
-    const timeoutPromise = new Promise(resolve => setTimeout(() => resolve([]), 3500)); // 3.5 seconds timeout
-    
-    try {
-      const crossStreams = await Promise.race([crossPromise, timeoutPromise]);
-      const seenUrls = new Set(streams.map(s => s.url));
-      
-      crossStreams.forEach(s => {
-        if (s.url && !seenUrls.has(s.url)) {
-          seenUrls.add(s.url);
-          streams.push(s);
-        }
-      });
-    } catch (err) {
-      console.error('Error matching cross streams:', err);
-    }
-
     res.json({ streams });
   } catch (err) {
     console.error('Error handling stream:', err);
-    res.status(500).json({ err: 'Internal Server Error' });
+    res.json({ streams: [] });
   }
+});
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok', service: 'kkphim-stremio-addon' });
 });
 
 // Start Addon Server
 app.listen(PORT, () => {
   console.log(`=========================================`);
-  console.log(`PhimAPI Stremio Addon is running!`);
+  console.log(`🚀 KKPhim Stremio Addon is running!`);
   console.log(`Local URL: http://localhost:${PORT}`);
   console.log(`Manifest URL: http://localhost:${PORT}/manifest.json`);
   console.log(`=========================================`);
 });
+
