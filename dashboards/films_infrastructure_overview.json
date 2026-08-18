@@ -25,7 +25,7 @@
       "collapsed": false,
       "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
       "id": 100,
-      "title": "⚡ TỔNG QUAN HỆ THỐNG MÁY CHỦ (AWS EC2 SINGAPORE)",
+      "title": "SYSTEM HEALTH & CORE KPIS (AWS EC2 SINGAPORE)",
       "type": "row"
     },
     {
@@ -63,7 +63,7 @@
           "refId": "A"
         }
       ],
-      "title": "CPU Usage",
+      "title": "CPU Utilization",
       "type": "gauge"
     },
     {
@@ -101,7 +101,7 @@
           "refId": "A"
         }
       ],
-      "title": "RAM Usage",
+      "title": "Memory Usage",
       "type": "gauge"
     },
     {
@@ -139,7 +139,7 @@
           "refId": "A"
         }
       ],
-      "title": "Disk Usage (Root /)",
+      "title": "Root Disk (/) Usage",
       "type": "gauge"
     },
     {
@@ -170,7 +170,7 @@
           "refId": "A"
         }
       ],
-      "title": "System Uptime",
+      "title": "Host Uptime",
       "type": "stat"
     },
     {
@@ -201,7 +201,7 @@
           "refId": "A"
         }
       ],
-      "title": "Network Traffic In",
+      "title": "Network In (Throughput)",
       "type": "stat"
     },
     {
@@ -232,14 +232,14 @@
           "refId": "A"
         }
       ],
-      "title": "Network Traffic Out",
+      "title": "Network Out (Throughput)",
       "type": "stat"
     },
     {
       "collapsed": false,
       "gridPos": { "h": 1, "w": 24, "x": 0, "y": 5 },
       "id": 101,
-      "title": "📈 BIỂU ĐỒ CHI TIẾT TÀI NGUYÊN MÁY CHỦ (CPU, RAM, DISK, NETWORK)",
+      "title": "DETAILED INFRASTRUCTURE TIME SERIES (CPU, MEMORY, DISK, NET)",
       "type": "row"
     },
     {
@@ -251,7 +251,6 @@
             "axisBorderShow": false,
             "axisCenteredZero": false,
             "axisColorMode": "text",
-            "axisLabel": "",
             "axisPlacement": "auto",
             "fillOpacity": 15,
             "gradientMode": "opacity",
@@ -366,13 +365,13 @@
         {
           "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
           "expr": "rate(node_network_receive_bytes_total{device!~\"lo|veth.*|br.*|docker.*\"}[5m])",
-          "legendFormat": "{{device}} - In",
+          "legendFormat": "{{device}} - Inbound",
           "refId": "A"
         },
         {
           "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
           "expr": "rate(node_network_transmit_bytes_total{device!~\"lo|veth.*|br.*|docker.*\"}[5m])",
-          "legendFormat": "{{device}} - Out",
+          "legendFormat": "{{device}} - Outbound",
           "refId": "B"
         }
       ],
@@ -426,7 +425,7 @@
       "collapsed": false,
       "gridPos": { "h": 1, "w": 24, "x": 0, "y": 22 },
       "id": 102,
-      "title": "📜 REAL-TIME LOGS TOÀN BỘ CONTAINERS (LOKI STREAM VIEWER)",
+      "title": "CONTAINER LOGS & STREAMING VIEWER (LOKI)",
       "type": "row"
     },
     {
@@ -460,12 +459,12 @@
         {
           "datasource": { "type": "loki", "uid": "${DS_LOKI}" },
           "editorMode": "code",
-          "expr": "sum by (container) (count_over_time({instance=\"aws-ec2-singapore\", container=~\"$container\"}[1m]))",
+          "expr": "sum by (container) (count_over_time({container=~\"$container\"}[1m]))",
           "queryType": "range",
           "refId": "A"
         }
       ],
-      "title": "Log Rate by Container (Events / Min)",
+      "title": "Container Log Event Rate (Events / Min)",
       "type": "timeseries"
     },
     {
@@ -487,12 +486,12 @@
         {
           "datasource": { "type": "loki", "uid": "${DS_LOKI}" },
           "editorMode": "code",
-          "expr": "{instance=\"aws-ec2-singapore\", container=~\"$container\"}",
+          "expr": "{container=~\"$container\"}",
           "queryType": "range",
           "refId": "A"
         }
       ],
-      "title": "Live Container Logs (AIOStreams, AIOMetadata, Caddy, PhimAPI, Valkey, Postgres...)",
+      "title": "Live Container Log Stream",
       "type": "logs"
     }
   ],
@@ -531,17 +530,17 @@
           "value": "$__all"
         },
         "datasource": { "type": "loki", "uid": "${DS_LOKI}" },
-        "definition": "label_values({instance=\"aws-ec2-singapore\"}, container)",
+        "definition": "label_values(container)",
         "hide": 0,
         "includeAll": true,
-        "label": "Filter Container",
+        "label": "Container Filter",
         "multi": true,
         "name": "container",
         "options": [],
         "query": {
           "label": "container",
           "refId": "LokiVariableQueryEditor-VariableQuery",
-          "stream": "{instance=\"aws-ec2-singapore\"}",
+          "stream": "",
           "type": 1
         },
         "refresh": 2,
@@ -564,7 +563,7 @@
     ]
   },
   "timezone": "browser",
-  "title": "AWS EC2 • Streaming & Films Infrastructure Overview",
+  "title": "AWS EC2 • Infrastructure & Container Monitoring",
   "uid": "films-infra-monitoring",
-  "version": 1
+  "version": 2
 }
