@@ -459,7 +459,7 @@
         {
           "datasource": { "type": "loki", "uid": "${DS_LOKI}" },
           "editorMode": "code",
-          "expr": "sum by (container) (count_over_time({container=~\"$container\"}[1m]))",
+          "expr": "sum by (container) (count_over_time({instance=\"aws-ec2-singapore\", container=~\"$container\"}[1m]))",
           "queryType": "range",
           "refId": "A"
         }
@@ -486,7 +486,7 @@
         {
           "datasource": { "type": "loki", "uid": "${DS_LOKI}" },
           "editorMode": "code",
-          "expr": "{container=~\"$container\"}",
+          "expr": "{instance=\"aws-ec2-singapore\", container=~\"$container\"}",
           "queryType": "range",
           "refId": "A"
         }
@@ -523,7 +523,7 @@
         "type": "datasource"
       },
       {
-        "allValue": ".*",
+        "allValue": ".+",
         "current": {
           "selected": true,
           "text": "All",
@@ -565,5 +565,5 @@
   "timezone": "browser",
   "title": "AWS EC2 • Infrastructure & Container Monitoring",
   "uid": "films-infra-monitoring",
-  "version": 2
+  "version": 3
 }
