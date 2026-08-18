@@ -1,0 +1,66 @@
+// ==============================================================================
+// 1. SYSTEM METRICS (CPU, RAM, DISK, NETWORK CỦA EC2)
+// ==============================================================================
+prometheus.exporter.unix "node" {
+  procfs_path = "/host/proc"
+  sysfs_path  = "/host/sys"
+  rootfs_path = "/host/root"
+}
+
+prometheus.scrape "node_metrics" {
+  targets         = prometheus.exporter.unix.node.targets
+  forward_to      = [prometheus.remote_write.grafana_cloud.receiver]
+  scrape_interval = "15s"
+}
+
+// ==============================================================================
+// 2. DOCKER DISCOVERY & LOGS COLLECTOR (LOKI)
+// ==============================================================================
+discovery.docker "containers" {
+  host = "unix:///var/run/docker.sock"
+}
+
+discovery.relabel "docker_logs" {
+  targets = discovery.docker.containers.targets
+
+  rule {
+    source_labels = ["__meta_docker_container_name"]
+    regex         = "/(.*)"
+    target_label  = "container"
+  }
+
+  rule {
+    source_labels = ["container"]
+    target_label  = "instance"
+    replacement   = "aws-ec2-singapore"
+  }
+}
+
+loki.source.docker "default" {
+  host       = "unix:///var/run/docker.sock"
+  targets    = discovery.relabel.docker_logs.output
+  forward_to = [loki.write.grafana_cloud.receiver]
+}
+
+// ==============================================================================
+// 3. EXPORT METRICS & LOGS ĐẾN GRAFANA CLOUD (Hoặc Self-hosted)
+// ==============================================================================
+prometheus.remote_write "grafana_cloud" {
+  endpoint {
+    url = sys.env("GRAFANA_METRICS_URL")
+    basic_auth {
+      username = sys.env("GRAFANA_METRICS_USER")
+      password = sys.env("GRAFANA_API_KEY")
+    }
+  }
+}
+
+loki.write "grafana_cloud" {
+  endpoint {
+    url = sys.env("GRAFANA_LOGS_URL")
+    basic_auth {
+      username = sys.env("GRAFANA_LOGS_USER")
+      password = sys.env("GRAFANA_API_KEY")
+    }
+  }
+}

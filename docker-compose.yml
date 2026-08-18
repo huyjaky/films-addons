@@ -350,6 +350,33 @@ services:
       aiostreams_network:
         ipv4_address: 172.32.50.10
 
+  alloy:
+    image: grafana/alloy:v1.2.1
+    container_name: alloy
+    restart: unless-stopped
+    command:
+      - run
+      - --server.http.listen-addr=0.0.0.0:12345
+      - --storage.path=/var/lib/alloy/data
+      - /etc/alloy/config.alloy
+    volumes:
+      - /home/duckq1u/Documents/docker-volumes/films/addons/alloy/config.alloy:/etc/alloy/config.alloy:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/host/root:ro,rslave
+      - /var/log:/var/log:ro
+    environment:
+      GRAFANA_METRICS_URL: "${GRAFANA_METRICS_URL}"
+      GRAFANA_METRICS_USER: "${GRAFANA_METRICS_USER}"
+      GRAFANA_LOGS_URL: "${GRAFANA_LOGS_URL}"
+      GRAFANA_LOGS_USER: "${GRAFANA_LOGS_USER}"
+      GRAFANA_API_KEY: "${GRAFANA_API_KEY}"
+    networks:
+      aiostreams_network:
+        ipv4_address: 172.32.50.15
+    pid: host
+
 volumes:
   warp_data:
 
