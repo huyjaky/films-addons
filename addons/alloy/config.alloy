@@ -43,24 +43,24 @@ loki.source.docker "default" {
 }
 
 // ==============================================================================
-// 3. EXPORT METRICS & LOGS ĐẾN GRAFANA CLOUD (Hoặc Self-hosted)
+// 3. EXPORT METRICS & LOGS ĐẾN GRAFANA CLOUD
 // ==============================================================================
 prometheus.remote_write "grafana_cloud" {
   endpoint {
-    url = sys.env("GRAFANA_METRICS_URL")
+    url = env("GRAFANA_METRICS_URL")
     basic_auth {
-      username = sys.env("GRAFANA_METRICS_USER")
-      password = sys.env("GRAFANA_API_KEY")
+      username = env("GRAFANA_METRICS_USER")
+      password = env("GRAFANA_API_KEY")
     }
   }
 }
 
 loki.write "grafana_cloud" {
   endpoint {
-    url = sys.env("GRAFANA_LOGS_URL")
+    url = env("GRAFANA_LOGS_URL")
     basic_auth {
-      username = sys.env("GRAFANA_LOGS_USER")
-      password = sys.env("GRAFANA_API_KEY")
+      username = env("GRAFANA_LOGS_USER")
+      password = env("GRAFANA_API_KEY")
     }
   }
 }
