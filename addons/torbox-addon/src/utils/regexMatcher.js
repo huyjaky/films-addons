@@ -77,11 +77,10 @@ function isEpisodeMatching(fileName, torrentName, season, episode) {
 }
 
 /**
- * Creates Title Matcher Object supporting multiple candidate titles
+ * Creates Title Matcher Object
  */
 function createTitleMatcher({
   title,
-  titles = [],
   year,
   season,
   episode,
@@ -89,8 +88,6 @@ function createTitleMatcher({
   customIncludeRegex = '',
   customExcludeRegex = ''
 }) {
-  const candidateTitles = Array.from(new Set([title, ...(Array.isArray(titles) ? titles : [])].filter(Boolean)));
-
   let includeRegex = null;
   if (customIncludeRegex && customIncludeRegex.trim()) {
     try {
@@ -114,8 +111,8 @@ function createTitleMatcher({
     if (includeRegex && !includeRegex.test(combined)) return false;
     if (excludeRegex && excludeRegex.test(combined)) return false;
 
-    // 1. Check title match against any candidate title
-    const matchesTitle = candidateTitles.some(t => isTitleMatching(t, torrent) || isTitleMatching(t, file));
+    // 1. Check title match
+    const matchesTitle = isTitleMatching(title, torrent) || isTitleMatching(title, file);
     if (!matchesTitle) return false;
 
     // 2. For Series: check episode number
