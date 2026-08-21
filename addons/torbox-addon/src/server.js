@@ -186,8 +186,9 @@ app.get(['/stream/:type/:id.json', '/:config/stream/:type/:id.json'], async (req
 
       for (const file of files) {
         const fileName = file.name || torrentName;
+        const isSample = /(^|[._\-/])sample([._\-/]|$)/i.test(fileName) || (Number(file.size) > 0 && Number(file.size) < 100 * 1024 * 1024);
         
-        if (isVideoFile(fileName) && matcher.validateFileInTorrent(fileName, torrentName)) {
+        if (isVideoFile(fileName) && !isSample && matcher.validateFileInTorrent(fileName, torrentName)) {
           const streamUrl = buildStreamPermalink(apiKey, torrent.id, file.id);
           const quality = parseQuality(`${fileName} ${torrentName}`);
           const sizeStr = formatSize(file.size);
