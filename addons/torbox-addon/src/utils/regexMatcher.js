@@ -4,7 +4,8 @@
  */
 
 /**
- * Normalizes any text into a lowercase, alphanumeric token array
+ * Normalizes any text into a lowercase, alphanumeric token array.
+ * Handles apostrophes (There's -> theres, Don't -> dont), unicode diacritics, and symbols.
  */
 function cleanTokens(text) {
   if (!text) return [];
@@ -12,6 +13,8 @@ function cleanTokens(text) {
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '') // remove diacritics
     .toLowerCase()
+    .replace(/[''´`’]s\b/g, 's') // There's -> theres, Snoopy's -> snoopys
+    .replace(/[''´`’]/g, '') // Don't -> dont, '99 -> 99
     .replace(/[^a-z0-9]/g, ' ')
     .split(/\s+/)
     .filter(w => w.length > 0);

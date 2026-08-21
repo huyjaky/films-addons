@@ -40,10 +40,14 @@ console.log('🧪 Running TbCRS Unit Test Suite...\n');
     true
   );
   assert.strictEqual(
+    isTitleMatching("Snoopy Presents: There's No Place Like Home, Snoopy", 'Snoopy Presents Theres No Place Like Home Snoopy 2026 HDR 2160p WEB h265-DOLORES'),
+    true
+  );
+  assert.strictEqual(
     isTitleMatching('The Matrix', 'Spider-Man.No.Way.Home.2021.mkv'),
     false
   );
-  console.log('✅ Test 2 Passed: isTitleMatching (Movies)');
+  console.log('✅ Test 2 Passed: isTitleMatching (Movies including apostrophes)');
 }
 
 // --- Test 3: Multi-Title Candidates (TMDB + Cinemeta aliases) ---
