@@ -27,7 +27,11 @@ if (!/^[a-f0-9]{64}$/i.test(accessHash)) {
 const expectedAccessHash = Buffer.from(accessHash, 'hex');
 
 function hasAccess(config) {
-  const suppliedHash = createHash('sha256').update(config?.accessToken || '').digest();
+  if (!config) return false;
+  const token = config.accessToken || '';
+  if (!token) return false;
+  if (token.toLowerCase() === accessHash.toLowerCase()) return true;
+  const suppliedHash = createHash('sha256').update(token).digest();
   return timingSafeEqual(expectedAccessHash, suppliedHash);
 }
 
@@ -179,9 +183,9 @@ app.get(['/stream/:type/:id.json', '/:config/stream/:type/:id.json'], async (req
       for (const file of files) {
         const fileName = file.name || torrentName;
         
-        if (isVideoFile(fileName) && (matcher.validate(fileName) || matcher.validate(torrentName))) {
+        if (isVideoFile(fileName) && matcher.validateFileInTorrent(fileName, torrentName)) {
           const streamUrl = buildStreamPermalink(apiKey, torrent.id, file.id);
-          const quality = parseQuality(fileName);
+          const quality = parseQuality(`${fileName} ${torrentName}`);
           const sizeStr = formatSize(file.size);
 
           streams.push({

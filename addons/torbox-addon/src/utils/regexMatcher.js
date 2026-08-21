@@ -10,17 +10,20 @@ function escapeRegex(str) {
 }
 
 /**
+ * Normalizes title for flexible matching (removes accents, punctuation, handles '&' vs 'and', Roman numerals)
+ */
+function normalizeTitle(title) {
+  if (!title) return '';
+  return title
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '') // remove diacritics
+    .replace(/['":!?,.\-_/]/g, ' ')
+    .trim()
+    .replace(/\s+/g, ' ');
+}
+
+/**
  * Generates a flexible regex pattern from title, year, season, episode.
- * 
- * @param {Object} options
- * @param {string} options.title - Movie or Series title (e.g. "Deadpool & Wolverine")
- * @param {number|string} [options.year] - Release year (e.g. 2024)
- * @param {number|string} [options.season] - Season number (e.g. 1)
- * @param {number|string} [options.episode] - Episode number (e.g. 5)
- * @param {string} [options.type] - "movie" or "series"
- * @param {string} [options.customIncludeRegex] - Extra regex pattern that MUST match if provided
- * @param {string} [options.customExcludeRegex] - Extra regex pattern that MUST NOT match if provided
- * @returns {{ pattern: RegExp, validate: (name: string) => boolean }}
  */
 function createTitleMatcher({
   title,
@@ -34,38 +37,27 @@ function createTitleMatcher({
   if (!title) {
     return {
       pattern: /.*/i,
-      validate: () => false
+      validate: () => false,
+      validateFileInTorrent: () => false
     };
   }
 
-  // Handle '&' vs 'and' flexibly
-  const normalizedTitle = title
-    .trim()
-    .replace(/['":!?]/g, '');
+  const normalized = normalizeTitle(title);
+  const words = normalized.split(/\s+/).filter(Boolean);
 
-  // Split into words, treating '&' or 'and' specially
-  const words = normalizedTitle.split(/\s+/).filter(Boolean);
+  // Generate word-separated pattern matching spaces, dots, underscores, dashes
   const titleRegexPart = words.map(w => {
-    if (w.toLowerCase() === '&' || w.toLowerCase() === 'and') {
-      return '(?:&|and)';
-    }
+    const lower = w.toLowerCase();
+    if (lower === '&' || lower === 'and') return '(?:&|and)';
+    if (lower === '2' || lower === 'ii') return '(?:2|ii)';
+    if (lower === '3' || lower === 'iii') return '(?:3|iii)';
+    if (lower === '4' || lower === 'iv') return '(?:4|iv)';
+    if (lower === '5' || lower === 'v') return '(?:5|v)';
     return escapeRegex(w);
-  }).join('[.\\s_#-]*');
+  }).join('[.\\s_#-]+');
 
-  let fullPatternStr = titleRegexPart;
-
-  if (type === 'series' && season !== undefined && episode !== undefined) {
-    const sNum = parseInt(season, 10);
-    const eNum = parseInt(episode, 10);
-    const sStr = sNum < 10 ? `0?${sNum}` : `${sNum}`;
-    const eStr = eNum < 10 ? `0?${eNum}` : `${eNum}`;
-
-    // Match patterns like S01E05, S1E5, 1x05, 1x5, Season 1 Episode 5
-    const sePattern = `(S${sStr}[.\\s_-]*E${eStr}|${sNum}x${eStr}|Season[.\\s_-]*${sNum}[.\\s_-]*Episode[.\\s_-]*${eNum})`;
-    fullPatternStr = `${titleRegexPart}.*${sePattern}`;
-  }
-
-  const titleRegex = new RegExp(fullPatternStr, 'i');
+  const titleRegex = new RegExp(`(^|[^a-zA-Z0-9])${titleRegexPart}($|[^a-zA-Z0-9])`, 'i');
+  const simpleTitleRegex = new RegExp(titleRegexPart, 'i');
 
   let includeRegex = null;
   if (customIncludeRegex && customIncludeRegex.trim()) {
@@ -85,45 +77,123 @@ function createTitleMatcher({
     }
   }
 
+  /**
+   * Checks episode pattern in a file name
+   */
+  const matchEpisodeInString = (str, sNum, eNum) => {
+    if (!str) return false;
+    const sStr = sNum < 10 ? `0?${sNum}` : `${sNum}`;
+    const eStr = eNum < 10 ? `0?${eNum}` : `${eNum}`;
+
+    // Standard patterns: S01E05, S1E5, 1x05, 1x5, Season 1 Episode 5, Ep 5, Episode 5, E05, [05], - 05
+    const patterns = [
+      new RegExp(`S${sStr}[.\\s_-]*E${eStr}([^0-9]|$)`, 'i'),
+      new RegExp(`${sNum}x${eStr}([^0-9]|$)`, 'i'),
+      new RegExp(`(?:Season|Series)[.\\s_-]*${sStr}[.\\s_-]*(?:Episode|Ep|Part|Tap|Tập)[.\\s_-]*${eStr}([^0-9]|$)`, 'i'),
+      new RegExp(`(?:^|[.\\s_#\\[\\(-])(?:E|Ep|Episode|Tap|Tập)[.\\s_-]*${eStr}(?:[.\\s_#\\]\\)-]|$)`, 'i'),
+      new RegExp(`(?:^|[.\\s_#\\[\\(-])${eStr}(?:[.\\s_#\\]\\)-]|$)`, 'i')
+    ];
+
+    return patterns.some(p => p.test(str));
+  };
+
+  /**
+   * Checks season pattern in a torrent or folder name
+   */
+  const matchSeasonInString = (str, sNum) => {
+    if (!str) return false;
+    const sStr = sNum < 10 ? `0?${sNum}` : `${sNum}`;
+    const patterns = [
+      new RegExp(`S${sStr}([^0-9]|$)`, 'i'),
+      new RegExp(`(?:Season|Series)[.\\s_-]*${sStr}([^0-9]|$)`, 'i'),
+      new RegExp(`Season[.\\s_-]*${sNum}`, 'i')
+    ];
+    return patterns.some(p => p.test(str));
+  };
+
+  /**
+   * Validates a standalone name (file or torrent)
+   */
   const validate = (name) => {
     if (!name) return false;
+    if (!simpleTitleRegex.test(name)) return false;
 
-    // Check title pattern
-    if (!titleRegex.test(name)) return false;
+    if (includeRegex && !includeRegex.test(name)) return false;
+    if (excludeRegex && excludeRegex.test(name)) return false;
 
-    // Check year if provided for movies (optional match or non-conflicting)
     if (type === 'movie' && year) {
-      // If a 4-digit year is in the filename, ensure it matches or isn't a completely different year
       const yearMatches = name.match(/\b(19\d\d|20\d\d)\b/g);
       if (yearMatches && yearMatches.length > 0) {
         const expectedYear = parseInt(year, 10);
-        // Allow +/- 1 year for edge cases in release dates
-        const hasMatchingYear = yearMatches.some(y => {
-          const parsed = parseInt(y, 10);
-          return Math.abs(parsed - expectedYear) <= 1;
-        });
-        if (!hasMatchingYear) {
-          return false;
-        }
+        const hasMatchingYear = yearMatches.some(y => Math.abs(parseInt(y, 10) - expectedYear) <= 1);
+        if (!hasMatchingYear) return false;
       }
     }
 
-    // Check custom include regex if configured
-    if (includeRegex && !includeRegex.test(name)) {
-      return false;
-    }
-
-    // Check custom exclude regex if configured
-    if (excludeRegex && excludeRegex.test(name)) {
-      return false;
+    if (type === 'series' && season !== undefined && episode !== undefined) {
+      return matchEpisodeInString(name, parseInt(season, 10), parseInt(episode, 10));
     }
 
     return true;
   };
 
+  /**
+   * Validates a file in context of its containing torrent (crucial for Season Packs!)
+   */
+  const validateFileInTorrent = (fileName, torrentName) => {
+    const file = fileName || '';
+    const torrent = torrentName || '';
+
+    if (includeRegex && !(includeRegex.test(file) || includeRegex.test(torrent))) return false;
+    if (excludeRegex && (excludeRegex.test(file) || excludeRegex.test(torrent))) return false;
+
+    // 1. Direct match on file name alone
+    if (validate(file)) return true;
+
+    // 2. For Movies: Torrent name matches title and file is video
+    if (type === 'movie') {
+      if (simpleTitleRegex.test(torrent) || simpleTitleRegex.test(file)) {
+        if (year) {
+          const combined = `${torrent} ${file}`;
+          const yearMatches = combined.match(/\b(19\d\d|20\d\d)\b/g);
+          if (yearMatches && yearMatches.length > 0) {
+            const expectedYear = parseInt(year, 10);
+            const hasMatchingYear = yearMatches.some(y => Math.abs(parseInt(y, 10) - expectedYear) <= 1);
+            if (!hasMatchingYear) return false;
+          }
+        }
+        return true;
+      }
+      return false;
+    }
+
+    // 3. For Series Season Packs:
+    // Torrent matches title & season, and file matches episode number!
+    if (type === 'series' && season !== undefined && episode !== undefined) {
+      const sNum = parseInt(season, 10);
+      const eNum = parseInt(episode, 10);
+
+      const titleMatchesTorrent = simpleTitleRegex.test(torrent);
+      const seasonMatchesTorrent = matchSeasonInString(torrent, sNum);
+      const episodeMatchesFile = matchEpisodeInString(file, sNum, eNum);
+
+      if (titleMatchesTorrent && (seasonMatchesTorrent || matchSeasonInString(file, sNum)) && episodeMatchesFile) {
+        return true;
+      }
+
+      // If torrent name has title, and file has S01E05
+      if (titleMatchesTorrent && matchEpisodeInString(file, sNum, eNum)) {
+        return true;
+      }
+    }
+
+    return false;
+  };
+
   return {
-    pattern: titleRegex,
-    validate
+    pattern: simpleTitleRegex,
+    validate,
+    validateFileInTorrent
   };
 }
 
@@ -131,7 +201,7 @@ function createTitleMatcher({
  * Helper to parse resolution / quality from file or torrent name
  */
 function parseQuality(name) {
-  if (!name) return 'Unknown';
+  if (!name) return 'HD';
   if (/2160p|4k|uhd/i.test(name)) return '4K 2160p';
   if (/1080p|fhd/i.test(name)) return '1080p';
   if (/720p|hd/i.test(name)) return '720p';
@@ -154,5 +224,6 @@ module.exports = {
   createTitleMatcher,
   parseQuality,
   formatSize,
-  escapeRegex
+  escapeRegex,
+  normalizeTitle
 };
