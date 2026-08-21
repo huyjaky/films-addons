@@ -21,18 +21,12 @@ const httpPool = axios.create({
   }
 });
 
-// In-memory cache for user's torrent list (30s TTL for success, 10s TTL for real auth error)
-const mylistCache = new Map();
-const MYLIST_TTL_MS = 30 * 1000;
-const AUTH_ERROR_TTL_MS = 10 * 1000;
-
-// Ongoing fetch promises map to coalesce concurrent requests per API key
-const pendingRequests = new Map();
-
 /**
- * Helper to fetch mylist from Torbox with 1 automatic retry on transient failure
+ * Helper to fetch mylist from Torbox (Live, Zero-Cache) with 1 retry on transient failure
  */
-async function fetchMylistFromApi(apiKey, retryCount = 1) {
+async function getUserTorrents(apiKey, retryCount = 1) {
+  if (!apiKey) return { torrents: [], authError: false };
+
   for (let attempt = 0; attempt <= retryCount; attempt++) {
     try {
       const response = await httpPool.get(`${TORBOX_API_BASE}/torrents/mylist`, {
@@ -61,7 +55,7 @@ async function fetchMylistFromApi(apiKey, retryCount = 1) {
 
       console.warn(`[Torbox] Attempt ${attempt + 1} failed for mylist:`, error.message);
       if (attempt < retryCount) {
-        await new Promise(r => setTimeout(r, 400));
+        await new Promise(r => setTimeout(r, 300));
       }
     }
   }
@@ -70,54 +64,7 @@ async function fetchMylistFromApi(apiKey, retryCount = 1) {
 }
 
 /**
- * Fetches user's torrent list from Torbox Cloud (/mylist) with in-memory TTL caching & request coalescing
- * 
- * @param {string} apiKey 
- * @returns {Promise<{ torrents: Array, authError: boolean }>}
- */
-async function getUserTorrents(apiKey) {
-  if (!apiKey) return { torrents: [], authError: false };
-
-  // 1. Check in-memory TTL cache
-  const cached = mylistCache.get(apiKey);
-  if (cached) {
-    const ttl = cached.data.authError ? AUTH_ERROR_TTL_MS : MYLIST_TTL_MS;
-    if (Date.now() - cached.timestamp < ttl) {
-      return cached.data;
-    }
-    mylistCache.delete(apiKey);
-  }
-
-  // 2. Coalesce concurrent requests for the same API key
-  if (pendingRequests.has(apiKey)) {
-    return pendingRequests.get(apiKey);
-  }
-
-  const fetchPromise = (async () => {
-    try {
-      const result = await fetchMylistFromApi(apiKey, 1);
-      if (result.torrents && result.torrents.length > 0) {
-        mylistCache.set(apiKey, { data: result, timestamp: Date.now() });
-      } else if (result.authError) {
-        mylistCache.set(apiKey, { data: result, timestamp: Date.now() });
-      }
-      return result;
-    } finally {
-      pendingRequests.delete(apiKey);
-    }
-  })();
-
-  pendingRequests.set(apiKey, fetchPromise);
-  return fetchPromise;
-}
-
-/**
  * Generates Torbox permalink URL for direct video streaming
- * 
- * @param {string} apiKey 
- * @param {number|string} torrentId 
- * @param {number|string} fileId 
- * @returns {string} Stream URL with redirect=true
  */
 function buildStreamPermalink(apiKey, torrentId, fileId) {
   return `${TORBOX_API_BASE}/torrents/requestdl?token=${encodeURIComponent(apiKey)}&torrent_id=${torrentId}&file_id=${fileId}&redirect=true`;
