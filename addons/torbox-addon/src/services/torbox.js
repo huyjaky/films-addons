@@ -3,6 +3,8 @@ const https = require('https');
 
 const TORBOX_API_BASE = 'https://api.torbox.app/v1/api';
 
+const USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36';
+
 // Re-use HTTPS agent with Keep-Alive for low-latency connections
 const httpsAgent = new https.Agent({
   keepAlive: true,
@@ -12,16 +14,60 @@ const httpsAgent = new https.Agent({
 
 const httpPool = axios.create({
   httpsAgent,
-  timeout: 6000
+  timeout: 10000,
+  headers: {
+    'User-Agent': USER_AGENT,
+    'Accept': 'application/json, text/plain, */*'
+  }
 });
 
-// In-memory cache for user's torrent list (45s TTL for success, 15s TTL for auth error)
+// In-memory cache for user's torrent list (30s TTL for success, 10s TTL for real auth error)
 const mylistCache = new Map();
-const MYLIST_TTL_MS = 45 * 1000;
-const AUTH_ERROR_TTL_MS = 15 * 1000;
+const MYLIST_TTL_MS = 30 * 1000;
+const AUTH_ERROR_TTL_MS = 10 * 1000;
 
 // Ongoing fetch promises map to coalesce concurrent requests per API key
 const pendingRequests = new Map();
+
+/**
+ * Helper to fetch mylist from Torbox with 1 automatic retry on transient failure
+ */
+async function fetchMylistFromApi(apiKey, retryCount = 1) {
+  for (let attempt = 0; attempt <= retryCount; attempt++) {
+    try {
+      const response = await httpPool.get(`${TORBOX_API_BASE}/torrents/mylist`, {
+        headers: {
+          'Authorization': `Bearer ${apiKey}`
+        }
+      });
+
+      const data = response.data;
+      if (data) {
+        if (data.error === 'AUTH_ERROR' || data.error === 'BAD_TOKEN') {
+          return { torrents: [], authError: true };
+        }
+        if (data.success && Array.isArray(data.data)) {
+          return { torrents: data.data, authError: false };
+        }
+      }
+    } catch (error) {
+      const status = error.response?.status;
+      const errData = error.response?.data;
+
+      // Definite auth error (401 Unauthorized with auth message)
+      if (status === 401 && (errData?.error === 'AUTH_ERROR' || errData?.error === 'BAD_TOKEN')) {
+        return { torrents: [], authError: true };
+      }
+
+      console.warn(`[Torbox] Attempt ${attempt + 1} failed for mylist:`, error.message);
+      if (attempt < retryCount) {
+        await new Promise(r => setTimeout(r, 400));
+      }
+    }
+  }
+
+  return { torrents: [], authError: false };
+}
 
 /**
  * Fetches user's torrent list from Torbox Cloud (/mylist) with in-memory TTL caching & request coalescing
@@ -49,42 +95,16 @@ async function getUserTorrents(apiKey) {
 
   const fetchPromise = (async () => {
     try {
-      // Fast cached response from Torbox
-      const response = await httpPool.get(`${TORBOX_API_BASE}/torrents/mylist`, {
-        headers: {
-          'Authorization': `Bearer ${apiKey}`
-        }
-      });
-
-      const errType = response.data?.error;
-      if (errType === 'AUTH_ERROR' || errType === 'BAD_TOKEN' || response.data?.success === false) {
-        if (errType === 'AUTH_ERROR' || errType === 'BAD_TOKEN') {
-          const errResult = { torrents: [], authError: true };
-          mylistCache.set(apiKey, { data: errResult, timestamp: Date.now() });
-          return errResult;
-        }
-      }
-
-      if (response.data && response.data.success && Array.isArray(response.data.data)) {
-        const result = { torrents: response.data.data, authError: false };
+      const result = await fetchMylistFromApi(apiKey, 1);
+      if (result.torrents && result.torrents.length > 0) {
         mylistCache.set(apiKey, { data: result, timestamp: Date.now() });
-        return result;
+      } else if (result.authError) {
+        mylistCache.set(apiKey, { data: result, timestamp: Date.now() });
       }
-    } catch (error) {
-      const errType = error.response?.data?.error;
-      const status = error.response?.status;
-
-      if (errType === 'AUTH_ERROR' || errType === 'BAD_TOKEN' || status === 401 || status === 403) {
-        const errResult = { torrents: [], authError: true };
-        mylistCache.set(apiKey, { data: errResult, timestamp: Date.now() });
-        return errResult;
-      }
-      console.error('[Torbox] Error fetching mylist:', error.response?.data || error.message);
+      return result;
     } finally {
       pendingRequests.delete(apiKey);
     }
-
-    return { torrents: [], authError: false };
   })();
 
   pendingRequests.set(apiKey, fetchPromise);

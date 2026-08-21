@@ -107,6 +107,10 @@ app.get(['/configure', '/:config/configure'], (req, res) => {
 
 // Stream endpoints (Stremio & Nuvio v3 format)
 app.get(['/stream/:type/:id.json', '/:config/stream/:type/:id.json'], async (req, res) => {
+  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+
   const { type, id } = req.params;
   const rawConfig = req.params.config;
   const config = parseConfig(rawConfig);

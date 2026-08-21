@@ -12,9 +12,15 @@ const httpsAgent = new https.Agent({
   keepAliveMsecs: 30000
 });
 
+const USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36';
+
 const httpPool = axios.create({
   httpsAgent,
-  timeout: 5000
+  timeout: 7000,
+  headers: {
+    'User-Agent': USER_AGENT,
+    'Accept': 'application/json, text/plain, */*'
+  }
 });
 
 // In-memory TTL cache for metadata (TTL: 24 hours)
