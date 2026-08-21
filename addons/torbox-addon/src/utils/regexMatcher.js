@@ -1,11 +1,12 @@
 /**
  * Clean & High-Performance Title Matching Utility for TbCRS.
  * Simple, robust keyword & token matching without complex regex traps.
+ * Only keeps letters, numbers, and spaces.
  */
 
 /**
  * Normalizes any text into a lowercase, alphanumeric token array.
- * Handles apostrophes (There's -> theres, Don't -> dont), unicode diacritics, and symbols.
+ * Strictly removes all special characters, keeping only letters (a-z), numbers (0-9), and spaces.
  */
 function cleanTokens(text) {
   if (!text) return [];
@@ -13,9 +14,9 @@ function cleanTokens(text) {
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '') // remove diacritics
     .toLowerCase()
-    .replace(/[''´`’]s\b/g, 's') // There's -> theres, Snoopy's -> snoopys
-    .replace(/[''´`’]/g, '') // Don't -> dont, '99 -> 99
-    .replace(/[^a-z0-9]/g, ' ')
+    .replace(/[''´`’]/g, '') // remove apostrophes directly (There's -> theres, Don't -> dont)
+    .replace(/[^a-z0-9]/g, ' ') // replace all other special characters with space
+    .trim()
     .split(/\s+/)
     .filter(w => w.length > 0);
 }
