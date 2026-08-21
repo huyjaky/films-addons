@@ -1,6 +1,6 @@
 /**
- * Clean & Simple Title Matching Utility for TbCRS.
- * Simple, fast keyword & token matching without complex regex traps.
+ * Clean & High-Performance Title Matching Utility for TbCRS.
+ * Simple, robust keyword & token matching without complex regex traps.
  */
 
 /**
@@ -34,7 +34,7 @@ function isTitleMatching(searchTitle, targetText) {
     return true;
   }
 
-  // 2. Keyword match: filter minor words if title is long
+  // 2. Keyword match: filter minor words if title has more than 2 words
   const stopWords = new Set(['the', 'a', 'an', 'of', 'in', 'on', 'at', 'to', 'for', 'and']);
   const keyTokens = searchTokens.length > 2
     ? searchTokens.filter(t => !stopWords.has(t))
@@ -53,7 +53,7 @@ function isTitleMatching(searchTitle, targetText) {
 }
 
 /**
- * Checks if episode matches for Series
+ * Checks if episode matches for Series (checks both season & episode)
  */
 function isEpisodeMatching(fileName, torrentName, season, episode) {
   if (season === undefined || episode === undefined) return true;
@@ -63,24 +63,40 @@ function isEpisodeMatching(fileName, torrentName, season, episode) {
   const sStr = s < 10 ? `0?${s}` : `${s}`;
   const eStr = e < 10 ? `0?${e}` : `${e}`;
 
-  const text = `${torrentName} ${fileName}`;
+  const combined = `${torrentName}/${fileName}`;
 
-  // Check common episode patterns (S01E01, 1x01, E01, Ep 01, Episode 01, Tap 01, 01.mkv)
-  const epRegexes = [
-    new RegExp(`s${sStr}[.\\s_-]*e${eStr}\\b`, 'i'),
-    new RegExp(`\\b${s}x${eStr}\\b`, 'i'),
-    new RegExp(`\\b(?:e|ep|episode|tap|tập)[.\\s_-]*${eStr}\\b`, 'i'),
-    new RegExp(`(?:^|[.\\s_#\\[\\(-])${eStr}(?:[.\\s_#\\]\\)-]|$)`, 'i')
-  ];
+  // Check strict S01E01, 1x01, S1E1 pattern in combined path
+  const strictPattern = new RegExp(`s${sStr}[.\\s_-]*e${eStr}([^0-9]|$)`, 'i');
+  const xPattern = new RegExp(`(?:^|[^0-9])${s}x${eStr}([^0-9]|$)`, 'i');
+  if (strictPattern.test(combined) || xPattern.test(combined)) {
+    return true;
+  }
 
-  return epRegexes.some(r => r.test(text));
+  // Check if Season matches in path/torrent AND Episode matches in filename
+  const seasonPattern = new RegExp(`(?:season|s)[.\\s_-]*${sStr}([^0-9]|$)`, 'i');
+  const epPattern = new RegExp(`(?:^|[.\\s_#\\[\\(-])(?:e|ep|episode|tap|tập)?[.\\s_-]*${eStr}(?:[.\\s_#\\]\\)-]|$)`, 'i');
+
+  const fileOnly = fileName.split('/').pop() || fileName;
+  const isFileMatchingEp = epPattern.test(fileOnly);
+
+  // If inside season pack (Season 1 folder) and file has episode 1
+  if (seasonPattern.test(combined) && isFileMatchingEp) {
+    // Ensure file does not belong to another season (e.g. S02E01)
+    const otherSeasonPattern = new RegExp(`s(?:0?[^${s}0]|${s + 1})e`, 'i');
+    if (!otherSeasonPattern.test(fileOnly)) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 /**
- * Creates Title Matcher Object
+ * Creates Title Matcher Object supporting multiple candidate titles
  */
 function createTitleMatcher({
   title,
+  titles = [],
   year,
   season,
   episode,
@@ -88,6 +104,8 @@ function createTitleMatcher({
   customIncludeRegex = '',
   customExcludeRegex = ''
 }) {
+  const candidateTitles = Array.from(new Set([title, ...(Array.isArray(titles) ? titles : [])].filter(Boolean)));
+
   let includeRegex = null;
   if (customIncludeRegex && customIncludeRegex.trim()) {
     try {
@@ -111,8 +129,8 @@ function createTitleMatcher({
     if (includeRegex && !includeRegex.test(combined)) return false;
     if (excludeRegex && excludeRegex.test(combined)) return false;
 
-    // 1. Check title match
-    const matchesTitle = isTitleMatching(title, torrent) || isTitleMatching(title, file);
+    // 1. Check title match against any candidate title
+    const matchesTitle = candidateTitles.some(t => isTitleMatching(t, torrent) || isTitleMatching(t, file));
     if (!matchesTitle) return false;
 
     // 2. For Series: check episode number
@@ -141,14 +159,15 @@ function parseQuality(name) {
 }
 
 /**
- * Format bytes to readable size
+ * Format bytes to readable size (1024-based binary size)
  */
 function formatSize(bytes) {
   if (!bytes || isNaN(bytes)) return '';
-  const gb = bytes / (1024 * 1024 * 1024);
+  const num = Number(bytes);
+  const gb = num / (1024 * 1024 * 1024);
   if (gb >= 1) return `${gb.toFixed(2)} GB`;
-  const mb = bytes / (1024 * 1024);
-  return `${mb.toFixed(1)} MB`;
+  const mb = num / (1024 * 1024);
+  return `${mb.toFixed(2)} MB`;
 }
 
 module.exports = {

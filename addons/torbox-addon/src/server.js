@@ -150,6 +150,7 @@ app.get(['/stream/:type/:id.json', '/:config/stream/:type/:id.json'], async (req
     // 2. Create Title & Regex matcher
     const matcher = createTitleMatcher({
       title: meta.title,
+      titles: meta.titles,
       year: meta.year,
       season: meta.season,
       episode: meta.episode,
